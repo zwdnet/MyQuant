@@ -8,11 +8,11 @@ from pyalgotrade import plotter
 from pyalgotrade.technical import ma
 from pyalgotrade.technical import cross
 from pandas.plotting import register_matplotlib_converters
-from GetHistroyData import *
 from pyalgotrade.stratanalyzer import returns
 from pyalgotrade.stratanalyzer import sharpe
 from pyalgotrade.stratanalyzer import drawdown
 from pyalgotrade.stratanalyzer import trades
+from GetHistroyData import *
 
 
 class MyStrategy(strategy.BacktestingStrategy):

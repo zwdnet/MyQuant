@@ -7,8 +7,8 @@ import pandas as pd
 
 
 # 获取历史数据
-def GetHistroyData(code, startTime, endTime):
-	data = ts.get_k_data(code, start = startTime, end = endTime)
+def GetHistroyData(code, startTime, endTime, KType = 'D'):
+	data = ts.get_k_data(code, ktype = KType, start = startTime, end = endTime)
 	return data
 
 
