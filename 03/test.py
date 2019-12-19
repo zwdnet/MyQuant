@@ -151,7 +151,7 @@ def run_strategy(cash):
     tradesAnalyzer = trades.Trades()
     myStrategy.attachAnalyzer(tradesAnalyzer)
     
-    bt = Backtesting("000001", 2016, 2018, myStrategy)
+    
     
     # 以沪深300为基准#
     instruments300 = ["510300"]
@@ -193,9 +193,12 @@ def run_strategy(cash):
 
 if __name__ == '__main__':
     register_matplotlib_converters()
-    cash = 1000000
-    result = run_strategy(cash)
-    # analyzer(result[1:5])
+    bt = Backtesting(["000001"], 2016, 2018, MyStrategy)
+    strategy = bt.getStrategy()
+    strategy[0].run()
+    strategy[1].run()
+    result = bt.getResult()
+    bt.outputResult()
+    print("期末总资产%.2f" % strategy[0].getResult())
+    bt.drawResult("test.png")
     
-    res = result[0].getResult()
-    print("期末总资产%.2f 期末收益率%.2f%%" % (res, 100.0*(res/cash-1.0)))
