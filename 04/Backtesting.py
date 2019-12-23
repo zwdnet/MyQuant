@@ -62,7 +62,7 @@ class Backtesting():
 		
 	# 创建策略并绑定分析器
 	def __createStrategy(self):
-		self.__strategyTest = self.__strategy(self.__feed, self.__instrument[0], self.__brk)
+		self.__strategyTest = self.__strategy(self.__feed, self.__instrument, self.__brk)
 		self.__strategyTest.attachAnalyzer(self.__return)
 		self.__strategyTest.attachAnalyzer(self.__sharpe)
 		self.__strategyTest.attachAnalyzer(self.__drawdown)
