@@ -23,12 +23,13 @@ from pandas.plotting import register_matplotlib_converters
 	feeRate: 手续费费率，默认为0.0003
 """
 class Backtesting():
-	def __init__(self, instrument, startYear, endYear, strategy, base = ["510300"], cash = 1000000, feeRate = 0.0003):
+	def __init__(self, instrument, startYear, endYear, strategy, base = "510300", cash = 1000000, feeRate = 0.0003):
 		self.__instrument = instrument
 		self.__startYear = startYear
 		self.__endYear = endYear
 		self.__strategy = strategy
-		self.__base = base
+		self.__base = []
+		self.__base.append(base)
 		self.__cash = cash
 		self.__feeRate = feeRate
 		# 要创建的内部变量
@@ -73,10 +74,10 @@ class Backtesting():
 	# 创建绘图器
 	def __createPlter(self):
 		self.__plter = plotter.StrategyPlotter(self.__strategyTest)
-		self.__plter.getOrCreateSubplot("return").addDataSeries("retuens", self.__return.getReturns())
-		self.__plter.getOrCreateSubplot("CumReturn").addDataSeries("CumReturn", self.__return.getCumulativeReturns())
-		self.__plter.getOrCreateSubplot("return").addDataSeries("retuensBase", self.__returnBase.getReturns())
-		self.__plter.getOrCreateSubplot("CumReturn").addDataSeries("CumReturnBase", self.__returnBase.getCumulativeReturns())
+		# self.__plter.getOrCreateSubplot("return").addDataSeries("retuens", self.__return.getReturns())
+		# self.__plter.getOrCreateSubplot("CumReturn").addDataSeries("CumReturn", self.__return.getCumulativeReturns())
+		# self.__plter.getOrCreateSubplot("return").addDataSeries("retuensBase", self.__returnBase.getReturns())
+		# self.__plter.getOrCreateSubplot("CumReturn").addDataSeries("CumReturnBase", self.__returnBase.getCumulativeReturns())
 		
 		
 	# 计算αβ信息比例等指标
