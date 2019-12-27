@@ -107,7 +107,7 @@ class Backtesting():
 		x =  self.__feed.getDataSeries(self.__instrument[0]).getCloseDataSeries()
 		y = self.__feedBase.getDataSeries(self.__base[0]).getCloseDataSeries()
 		beta2 = BETA(x, y, 250)
-		print("beta2=%.2f" % (beta2))
+		print(beta2)
 	
 		# 计算信息比率
 		# 先计算超额收益
