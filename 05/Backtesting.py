@@ -106,7 +106,7 @@ class Backtesting():
 		# 尝试用talib计算beta值
 		x =  self.__feed.getDataSeries(self.__instrument[0]).getCloseDataSeries()
 		y = self.__feedBase.getDataSeries(self.__base[0]).getCloseDataSeries()
-		beta2 = BETA(x, y, 250)
+		beta2 = BETA(x, y, 0)
 		print(beta2)
 	
 		# 计算信息比率
