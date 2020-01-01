@@ -51,7 +51,7 @@ class MyStrategy(strategy.BacktestingStrategy):
 
 if __name__ == '__main__':
 	instruments = ["600519", "601398", "601318"]
-	bt = Backtesting(["600519"], 2014, 2018, MyStrategy, cash = 10000000)
+	bt = Backtesting(["601398"], 2014, 2018, MyStrategy, cash = 1000000)
 	strategy = bt.getStrategy()
 	strategy[0].run()
 	strategy[1].run()

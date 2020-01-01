@@ -9,7 +9,7 @@ import pandas as pd
 from scipy import stats
 import numpy as np
 from pandas.plotting import register_matplotlib_converters
-from pyalgotrade.talibext.indicator import BETA
+import empyrical as ep
 
 
 """
@@ -104,10 +104,27 @@ class Backtesting():
 		self.__result["beta"] = beta
 		
 		# 尝试用talib计算beta值
-		x =  self.__feed.getDataSeries(self.__instrument[0]).getCloseDataSeries()
-		y = self.__feedBase.getDataSeries(self.__base[0]).getCloseDataSeries()
-		beta2 = BETA(x, y, 0)
-		print(beta2)
+		#x =  self.__feed.getDataSeries(self.__instrument[0]).getCloseDataSeries()
+#		y = self.__feedBase.getDataSeries(self.__base[0]).getCloseDataSeries()
+#		beta2 = BETA(x, y, 0)
+#		print(beta2)
+
+		# 用empyrical计算αβ值
+		strategyReturn = self.__return.getReturns()
+		baseReturn = self.__returnBase.getReturns()
+		Returns = []
+		baseReturns = []
+		for i in range(len(strategyReturn)):
+			Returns.append(strategyReturn[i])
+			baseReturns.append(baseReturn[i])
+		returns = np.array(Returns)
+		basereturns = np.array(baseReturns)
+		print(returns)
+		print(basereturns)
+		alpha, beta = ep.alpha_beta(returns, basereturns)
+		self.__result["alpha"] = alpha
+		self.__result["beta"] = beta
+		print(alpha, beta)
 	
 		# 计算信息比率
 		# 先计算超额收益
@@ -119,8 +136,9 @@ class Backtesting():
 	def __testResults(self):
 		# 计算年化收益率
 		self.__result["总收益率"] = [self.__return.getCumulativeReturns()[-1]]
+		# self.__result["总收益率"] = [self.__strategyTest.getResult()]
 		# 计算夏普比率
-		self.__result["夏普比率"] = [self.__sharpe.getSharpeRatio(0.05)]
+		self.__result["夏普比率"] = [self.__sharpe.getSharpeRatio(0.05, annualized = False)]
 		# 计算最大回撤
 		self.__result["最大回撤"] = [self.__drawdown.getMaxDrawDown()]
 		self.__result["最大回撤期间"] = [self.__drawdown.getLongestDrawDownDuration()]
