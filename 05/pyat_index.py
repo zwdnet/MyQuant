@@ -95,7 +95,7 @@ if __name__ == "__main__":
 	cum_return_base_arr = toArray(cum_return_base)
 	srTest = sharpeTest.getSharpeRatio(0.036)
 	srBase = sharpeBase.getSharpeRatio(0.036)
-	alpha,beta = ep.alpha_beta(np.array(return_test_arr), np.array(return_base_arr))
+	alpha,beta = ep.alpha_beta(np.array(return_test_arr), np.array(return_base_arr), 0.036)
 	
 	print("test分期收益率")
 	output(return_test_arr)
