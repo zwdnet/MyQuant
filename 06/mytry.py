@@ -19,7 +19,7 @@ class VWAPMomentum(strategy.BacktestingStrategy):
 		
 	def onEnterOk(self, position):
 		execInfo = position.getEntryOrder().getExecutionInfo()
-		self.info("BUY at $%.2f" % (execInfo.getPrice()))
+		self.info("BUY at $%.2f 数量:%d 手续费:%.2f" % (execInfo.getPrice(), execInfo.getQuantity(), execInfo.getCommission()))
 		
 	def onEnterCanceled(self, position):
 		self.__position = None
@@ -49,6 +49,8 @@ class VWAPMomentum(strategy.BacktestingStrategy):
 		elif price < vwap * (1 - self.__threshold) and notional > 0:
 			#self.marketOrder(self.__instrument, -100)
 			self.enterShort(self.__instrument, 100, True)
+		brk = self.getBroker()
+		print("剩余现金%.2f" % brk.getCash())
 			
 	
 def main():
