@@ -27,7 +27,7 @@ class MeanVariance():
 		L3.extend([0, 0])
 		L4 = np.array([L2, L3])
 		L = np.append(L1, L4, 0)
-		result = linalg.solve(L, np.append(np.zeros(len(means)), [1, goalRet], 0))
+		results = linalg.solve(L, np.append(np.zeros(len(means)), [1, goalRet], 0))
 		return (np.array([list(self.returns.columns), results[:-2]]))
 
 	# 最小方差前缘曲线
