@@ -148,7 +148,7 @@ if __name__ == "__main__":
 	sh_return = pd.concat([byjc, hxyh, sykj, zndl, fjgs], axis = 1)
 	print("测试")
 	print(sh_return.head())
-	print(sh_return["2014"])
+	print(sh_return.iloc[0:10])
 
 	sh_return = sh_return.dropna()
 	cumreturn = (1+sh_return).cumprod()
@@ -166,8 +166,9 @@ if __name__ == "__main__":
 	
 	# 找出最优资产配置
 	# 训练集和测试集
-	train_set = sh_return["2014"]
-	test_set = sh_return["2015"]
+	l = len(sh_return)
+	train_set = sh_return.iloc[:l/2]
+	test_set = sh_return.iloc[l/2+1:]
 	# 选取组合
 	varMinimizer = MeanVariance(train_set)
 	goal_return = 0.003
