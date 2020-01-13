@@ -162,3 +162,27 @@ if __name__ == "__main__":
 	minVar = MeanVariance(sh_return)
 	minVar.frontierCurve()
 	
+	# 找出最优资产配置
+	# 训练集和测试集
+	train_set = sh_return["2014"]
+	test_set = sh_return["2015"]
+	# 选取组合
+	varMinimizer = MeanVariance(train_set)
+	goal_return = 0.003
+	portfolio_weight = varMinimizer.minVar(goal_return)
+	print(portfolio_weight)
+	# 计算测试收益率
+	test_return = np.dot(test_set, np.array([portfolio_weight[1,:].astype(np.float)]).swapaxes(0,1))
+	test_retutn = pd.DataFrame(test_return, index = test_set.index)
+	test_cum_return = (1+test_return).cumprod()
+	
+	# 随机生成组合比较
+	sim_weight = np.random.uniform(0, 1, (100, 5))
+	sim_weight = np.apply_along_axis(lambda x : x/sum(x), 1, sim_weight)
+	sim_return = np.dot(test_set, sim_weight.swapaxes(0, 1))
+	sim_weight = pd.DataFrame(sim_weight, index = test_cum_return.index)
+	sim_cum_return = (1+sim_return).cumprod()
+	plt.plot(sim_cum_return.index, sim_cum_return, color = "green")
+	plt.plot(test_cum_return.index, test_cum_return)
+	plt.savefig("choose_result.png")
+	
