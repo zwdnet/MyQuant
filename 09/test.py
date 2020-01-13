@@ -146,8 +146,10 @@ if __name__ == "__main__":
 	byjc.name = "byjc"
 	
 	sh_return = pd.concat([byjc, hxyh, sykj, zndl, fjgs], axis = 1)
-	print(sh_return.head())
-	
+        print("测试")
+        # print(sh_return.head())
+        print(sh_return["2014"])
+
 	sh_return = sh_return.dropna()
 	cumreturn = (1+sh_return).cumprod()
 	fig = plt.figure()
