@@ -167,6 +167,7 @@ if __name__ == "__main__":
 	# 找出最优资产配置
 	# 训练集和测试集
 	l = len(sh_return)
+	print(l)
 	train_set = sh_return.iloc[:l/2]
 	test_set = sh_return.iloc[l/2+1:]
 	# 选取组合
