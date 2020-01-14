@@ -3,12 +3,13 @@
 
 
 import pandas as pd
-import ffn
+# import ffn
 import matplotlib.pyplot as plt
 import datetime
 import numpy as np
 import math
 from scipy import linalg
+import statsmodels.api as sm
 
 
 # 均值类
@@ -161,32 +162,75 @@ if __name__ == "__main__":
 	# 看各股收益的相关性
 	print(sh_return.corr())
 	# 计算最小方差
-	minVar = MeanVariance(sh_return)
-	minVar.frontierCurve()
+#	minVar = MeanVariance(sh_return)
+#	minVar.frontierCurve()
+#	
+#	# 找出最优资产配置
+#	# 训练集和测试集
+#	l = len(sh_return)
+#	print(l)
+#	train_set = sh_return.iloc[:l/2]
+#	test_set = sh_return.iloc[l/2+1:]
+#	# 选取组合
+#	varMinimizer = MeanVariance(train_set)
+#	goal_return = 0.003
+#	portfolio_weight = varMinimizer.minVar(goal_return)
+#	print(portfolio_weight)
+#	# 计算测试收益率
+#	test_return = np.dot(test_set, np.array([portfolio_weight[1,:].astype(np.float)]).swapaxes(0,1))
+#	test_retutn = pd.DataFrame(test_return, index = test_set.index)
+#	test_cum_return = (1+test_return).cumprod()
+#	
+#	# 随机生成组合比较
+#	sim_weight = np.random.uniform(0, 1, (100, 5))
+#	sim_weight = np.apply_along_axis(lambda x : x/sum(x), 1, sim_weight)
+#	sim_return = np.dot(test_set, sim_weight.swapaxes(0, 1))
+#	sim_weight = pd.DataFrame(sim_weight, index = test_set.index)
+#	sim_cum_return = (1+sim_return).cumprod()
+#	plt.plot(sim_cum_return.index, sim_cum_return, color = "green")
+#	plt.plot(test_cum_return.index, test_cum_return)
+#	plt.savefig("choose_result.png")
+#	
+	# CAPM实例
+	indexcd = pd.read_csv("TRD_Index.csv", index_col = "Trddt")
+	mktcd = indexcd[indexcd.Indexcd == 902]
+	print(mktcd.head())
+	mktret = pd.Series(mktcd.Retindex.values, index = pd.to_datetime(mktcd.index))
+	mktret.name = "mktret"
+	print(mktret.head())
+	mktret = mktret["2014-01-02":"2014"]
+	print(mktret.tail())
 	
-	# 找出最优资产配置
-	# 训练集和测试集
-	l = len(sh_return)
-	print(l)
-	train_set = sh_return.iloc[:l/2]
-	test_set = sh_return.iloc[l/2+1:]
-	# 选取组合
-	varMinimizer = MeanVariance(train_set)
-	goal_return = 0.003
-	portfolio_weight = varMinimizer.minVar(goal_return)
-	print(portfolio_weight)
-	# 计算测试收益率
-	test_return = np.dot(test_set, np.array([portfolio_weight[1,:].astype(np.float)]).swapaxes(0,1))
-	test_retutn = pd.DataFrame(test_return, index = test_set.index)
-	test_cum_return = (1+test_return).cumprod()
+	# 新安股份
+	xin_an = pd.read_csv("xin_an.csv", index_col = "Date")
+	xin_an.index = pd.to_datetime(xin_an.index)
+	print(xin_an.head())
 	
-	# 随机生成组合比较
-	sim_weight = np.random.uniform(0, 1, (100, 5))
-	sim_weight = np.apply_along_axis(lambda x : x/sum(x), 1, sim_weight)
-	sim_return = np.dot(test_set, sim_weight.swapaxes(0, 1))
-	sim_weight = pd.DataFrame(sim_weight, index = test_cum_return.index)
-	sim_cum_return = (1+sim_return).cumprod()
-	plt.plot(sim_cum_return.index, sim_cum_return, color = "green")
-	plt.plot(test_cum_return.index, test_cum_return)
-	plt.savefig("choose_result.png")
+	# 清除非交易日数据
+	xin_an = xin_an[xin_an.Volume != 0]
+	# 计算收益率
+	xin_anret = (xin_an.Close - xin_an.Close.shift(1))/xin_an.Close.shift(1)
+	xin_anret.name = "returns"
+	xin_anret = xin_anret.dropna()
+	print(xin_anret.head(), xin_anret.tail())
 	
+	# 合并
+	Ret = pd.merge(pd.DataFrame(mktret),
+	 					pd.DataFrame(xin_anret),
+	 	left_index = True, right_index = True,
+	 	how = "inner")
+	 	
+	# 无风险收益率
+	rf = 1.036**(1/360) - 1
+	print(rf)
+	# 计算超额收益率和市场风险溢酬
+	Eret = Ret - rf
+	print(Eret.head())
+	# 画散点图
+	fig = plt.figure()
+	plt.scatter(Eret.values[:, 0], Eret.values[:, 1])
+	plt.savefig("Eret.png")
+	# 拟合CAPM模型
+	model = sm.OLS(Eret.returns[1:], sm.add_constant(Eret.mktret[1:]))
+	result = model.fit()
+	print(result.summary())
