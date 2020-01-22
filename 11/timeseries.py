@@ -11,7 +11,7 @@ plt.style.use("fivethirtyeight")
 # 上面设matplotlib的模板，对可视化时间序列数据很有用。
 from pylab import rcParams
 #from plotly import tools
-import chart_studio.plotly as py
+#import chart_studio.plotly as py
 #from plotly.offline import init_notebook_mode, iplot
 # init_notebook_mode(connected = True)
 #import plotly.graph_objs as go
@@ -26,7 +26,7 @@ from statsmodels.tsa.arima_process import ArmaProcess
 from statsmodels.tsa.arima_model import ARIMA
 import math
 # import mpl_finance as mpf
-# from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error
 
 
 if __name__ == "__main__":
@@ -445,6 +445,6 @@ if __name__ == "__main__":
 	fig = result.plot_diagnostics()
 	fig.savefig("DynamicFactor.png")
 	# 计算误差
-	rmse = math.sqrt(mean_squared_error(train_sample[1:502], predicted_result))
+	rmse = math.sqrt(mean_squared_error(train_sample[1:1002], predicted_result))
 	print("The root mean squared error is {}.".format(rmse))
 	
