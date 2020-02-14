@@ -24,7 +24,7 @@ if __name__ == "__main__":
 	print(df)
 	regr = linear_model.LinearRegression()
 	# 拟合
-	regr.fit(x, y)
+	regr.fit(x.reshape(-1,1), y)
 	# 得到回归参数的二乘法估计
 	a, b = regr.coef_, regr.intercept_
 	print(a, b)
@@ -32,5 +32,5 @@ if __name__ == "__main__":
 	yp = a*x + b
 	plt.scatter(x, y)
 	plt.plot(x, yp)
-	plt.savefig("fit.fig")
+	plt.savefig("fit.png")
 	
