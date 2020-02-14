@@ -38,7 +38,8 @@ if __name__ == "__main__":
 	
 	# 用statsmodels来做
 	import statsmodels.api as sm
-	model = sm.OLS(y, x)
+    X = sm.add_constant(x)
+	model = sm.OLS(y, X)
 	result = model.fit()
 	print("statsmodels做线性回归")
 	print(result.params)
