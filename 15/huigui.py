@@ -4,7 +4,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn import linear_model
+# from sklearn import linear_model
 import pandas as pd
 
 
@@ -22,25 +22,41 @@ if __name__ == "__main__":
 	# df["X"] = x
 	# df["Y"] = y
 	# print(df)
-	regr = linear_model.LinearRegression()
-	# 拟合
-	regr.fit(x.reshape(-1, 1), y)
-	# 得到回归参数的二乘法估计
-	a, b = regr.coef_, regr.intercept_
-	print(a, b)
-	# 画出拟合的直线
-	yp = a*x + b
-	plt.scatter(x, y)
-	plt.plot(x, yp)
-	plt.savefig("fit.png")
-	res = regr.score(x.reshape(-1, 1), y)
-	print(res)
+	#regr = linear_model.LinearRegression()
+#	# 拟合
+#	regr.fit(x.reshape(-1, 1), y)
+#	# 得到回归参数的二乘法估计
+#	a, b = regr.coef_, regr.intercept_
+#	print(a, b)
+#	# 画出拟合的直线
+#	yp = a*x + b
+#	plt.scatter(x, y)
+#	plt.plot(x, yp)
+#	plt.savefig("fit.png")
+#	res = regr.score(x.reshape(-1, 1), y)
+#	print(res)
 	
 	# 用statsmodels来做
 	import statsmodels.api as sm
-    X = sm.add_constant(x)
+	X = sm.add_constant(x)
 	model = sm.OLS(y, X)
 	result = model.fit()
 	print("statsmodels做线性回归")
-	print(result.params)
+	res = result.params
+	a = res[0]
+	b = res[1]
+	print(res)
 	print(result.summary())
+	residual = []
+	for i in range(len(x)):
+		cha = a + b*x[i] - y[i]
+		residual.append(cha)
+	print(residual)
+	plt.scatter(x, residual)
+	plt.savefig("residual.png")
+	# 模型应用
+	print(a, b)
+	# 求值
+	print(a + b*5.0)
+	# y的95%置信区间
+	
