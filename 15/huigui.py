@@ -35,4 +35,11 @@ if __name__ == "__main__":
 	plt.savefig("fit.png")
 	res = regr.score(x.reshape(-1, 1), y)
 	print(res)
-        hello
+	
+	# 用statsmodels来做
+	import statsmodels.api as sm
+	model = sm.OLS(y, x)
+	result = model.fit()
+	print("statsmodels做线性回归")
+	print(result.params)
+	print(result.summary())
