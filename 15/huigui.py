@@ -35,3 +35,4 @@ if __name__ == "__main__":
 	plt.savefig("fit.png")
 	res = regr.score(x.reshape(-1, 1), y)
 	print(res)
+        hello
