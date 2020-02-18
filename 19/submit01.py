@@ -30,7 +30,7 @@ if __name__ == "__main__":
 	X_test = pd.get_dummies(test_data[features])
 	
 	model = RandomForestClassifier(n_estimators = 100, max_depth = 5, random_state = 1)
-	model.fit()
+	model.fit(X, y)
 	predictions = model.predict(X_test)
 	
 	output = pd.DataFrame({'PassengerId': test_data.PassengerId, 'Survived': predictions})
