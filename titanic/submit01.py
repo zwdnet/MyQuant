@@ -6,12 +6,12 @@
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
+import tools
 
 
 if __name__ == "__main__":
 	# 读取数据
-	train_data = pd.read_csv("./titanic/train.csv")
-	test_data = pd.read_csv("./titanic/test.csv")
+	traindata, testdata = tools.loadData()
 	print(train_data.head())
 	print(test_data.head())
 	
@@ -30,7 +30,7 @@ if __name__ == "__main__":
 	X_test = pd.get_dummies(test_data[features])
 	
 	model = RandomForestClassifier(n_estimators = 100, max_depth = 5, random_state = 1)
-	model.fit(X, y)
+	model.fit()
 	predictions = model.predict(X_test)
 	
 	output = pd.DataFrame({'PassengerId': test_data.PassengerId, 'Survived': predictions})
