@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import tools
 from sklearn.linear_model import LinearRegression
-from sklearn.cross_validation import KFold
+from sklearn.model_selection import KFold
 
 
 if __name__ == "__main__":
@@ -34,18 +34,19 @@ if __name__ == "__main__":
 	predictors = ['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Embarked', 'Cabin']
 	alg = LinearRegression()
 	# 设置进行交叉验证
-	kf = KFold(new_train_data.shape[0], n_folds = 3, random_state = 1)
-	
+	kf = KFold(n_splits = 3, random_state = 1)
+	kf.get_n_splits(new_train_data)
+
 	predictions = []
-	for train, test in kf:
+	for train_index, test_index in kf.split(new_train_data):
 		# 训练数据
-		train_predictors = (new_train_data[predictors].iloc[train, :])
+		train_predictors = new_train_data[train_index]
 		# 训练目标
-		train_target = new_train_data["Survived"].iloc[train]
+		train_target = new_train_data["Survived"].iloc[train_index]
 		# 应用线性回归
 		alg.fit(train_predictors, train_target)
 		# 用测试集进行测试
-		test_predictions = alg.predict(new_train_data[predictors].iloc[test, :])
+		test_predictions = alg.predict(new_train_data[predictors].iloc[test_index, :])
 		predictions.append(test_predictions)
 		
 	predictions = np.concatenate(predictions, axis = 0)
