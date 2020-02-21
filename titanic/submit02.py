@@ -62,7 +62,7 @@ if __name__ == "__main__":
 	i = 241
 	for index in predictors:
 		X = new_train_data[index]
-                Y = LR.predict(X)
+		Y = LR.predict(X)
 		fig = plt.subplot(i)
 		i += 1
 		plt.plot(X, Y)
