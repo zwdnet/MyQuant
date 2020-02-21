@@ -49,6 +49,6 @@ if __name__ == "__main__":
 	pred = LR.predict(test_data.loc[:, predictors])
 	pred[pred >= 0.6] = 1
 	pred[pred < 0.6] = 0
-	output = pd.DataFrame({'PassengerId': test_data.PassengerId, 'Survived': pred})
+	output = pd.DataFrame({'PassengerId': test_data.PassengerId, 'Survived': int(pred)})
 	output.to_csv("submit02.csv", index = False)
 	print("结果输出完毕!")
