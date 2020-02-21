@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import tools
 from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold, cross_val_score
 
 
 if __name__ == "__main__":
@@ -32,26 +32,16 @@ if __name__ == "__main__":
 	# 线性回归模型
 	# 特征变量
 	predictors = ['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Embarked', 'Cabin']
-	alg = LinearRegression()
+	LR = LinearRegression()
 	# 设置进行交叉验证
-	kf = KFold(n_splits = 3, random_state = 1)
-	kf.get_n_splits(new_train_data)
-
-	predictions = []
-	for train_index, test_index in kf.split(new_train_data):
-		# 训练数据
-		train_predictors = new_train_data[train_index]
-		# 训练目标
-		train_target = new_train_data["Survived"].iloc[train_index]
-		# 应用线性回归
-		alg.fit(train_predictors, train_target)
-		# 用测试集进行测试
-		test_predictions = alg.predict(new_train_data[predictors].iloc[test_index, :])
-		predictions.append(test_predictions)
-		
-	predictions = np.concatenate(predictions, axis = 0)
-	predictions[predictions > 0.5] = 1
-	predictions[predictions <= 0.5] = 0
-	accuracy = sum(predictions[predictions == new_train_data["Survived"]])/len(predictions)
-	print(acvuracy)
-	
+	kf = kFold(5, random_state = 0)
+	train_target = new_train_data["Survived"]
+	accuracys = []
+	for train, test in kf.split(new_train_data):
+		LR.fit(new_train_data.loc[train, predictors], new_train_data.loc[train, "Survived"])
+		pred = LR.predict(new_train_data[test, predictors])
+		pred[pred >= 0.6] = 1
+		pref[pred < 0.6] = 0
+		accuracy = len(pred[pred == new_train_data.loc[test, "Survived"]])/len(test)
+		accuracys.append(accuracy)
+	print(np.mean(accuracys))
