@@ -63,4 +63,4 @@ if __name__ == "__main__":
 	fig = plt.figure()
 	plt.plot(X, y)
 	plt.plot(X, Y, "o")
-	fig.savefigure("LRtest.png")
+	fig.savefig("LRtest.png")
