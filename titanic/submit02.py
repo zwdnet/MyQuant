@@ -10,6 +10,7 @@ import pandas as pd
 import tools
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import KFold, cross_val_score
+import matplotlib.pyplot as plt
 
 
 if __name__ == "__main__":
@@ -55,4 +56,11 @@ if __name__ == "__main__":
 	# 输出回归结果
 	print("回归系数:", LR.coef_)
 	print("截距:", LR.intercept_)
-	print(LR.score(new_train_data[predictors], new_train_data["Survived"]))
+	X = new_train_data[predictors]
+	Y = new_train_data["Survived"]
+	y = LR.predict(X)
+	print(LR.score(X, Y))
+	fig = plt.figure()
+	plt.plot(X, y)
+	plt.plot(X, Y, "o")
+	fig.savefigure("LRtest.png")
