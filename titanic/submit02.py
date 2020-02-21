@@ -83,6 +83,7 @@ if __name__ == "__main__":
 	plt.savefig("LRtest.png")
 	
 	# 看模型的假设检验
+	X = new_train_data[predictors]
 	X = sm.add_constant(X)
 	model = sm.OLS(Y, X).fit()
 	res = get_index(model)
