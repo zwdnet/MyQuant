@@ -45,3 +45,10 @@ if __name__ == "__main__":
 		accuracy = len(pred[pred == new_train_data.loc[test, "Survived"]])/len(test)
 		accuracys.append(accuracy)
 	print(np.mean(accuracys))
+	# 进行预测，输出提交结果。
+	pred = LR.predict(test_data.loc[:, predictors])
+	pred[pred >= 0.6] = 1
+	pred[pred < 0.6] = 0
+	output = pd.DataFrame({'PassengerId': test_data.PassengerId, 'Survived': pred})
+	output.to_csv("submit02.csv", index = False)
+	print("结果输出完毕!")
