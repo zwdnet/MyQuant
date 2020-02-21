@@ -65,6 +65,6 @@ if __name__ == "__main__":
 		X = new_train_data[index]
 		fig = plt.subplot(i)
 		i += 1
-		plt.plot(X, Y)
+		plt.plot(X, Y, "*")
 		plt.plot(X, y, "o")
 	plt.savefig("LRtest.png")
