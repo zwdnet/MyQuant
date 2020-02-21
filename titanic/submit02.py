@@ -52,3 +52,7 @@ if __name__ == "__main__":
 	output = pd.DataFrame({'PassengerId': test_data.PassengerId, 'Survived': pred.astype(np.int16)})
 	output.to_csv("submit02.csv", index = False)
 	print("结果输出完毕!")
+	# 输出回归结果
+	print("回归系数:", LR.coef_)
+	print("截距:", LR.intercept_)
+	print(LR.score(new_train_data[predictors], new_train_data["Survived"]))
