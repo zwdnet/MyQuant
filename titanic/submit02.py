@@ -11,6 +11,19 @@ import tools
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import KFold, cross_val_score
 import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
+
+
+# 获取回归模型的几个指标
+def get_index(model):
+	R = model.rsquared
+	adjR = model.rsquared_adj
+	AIC = model.aic
+	F = model.fvalue
+	pF = model.f_pvalue
+	res = pd.Series({"R" : R, "adjR" : adjR, "AIC" : AIC, "F" : F, "pF" : pF})
+	return res
 
 
 if __name__ == "__main__":
@@ -68,3 +81,12 @@ if __name__ == "__main__":
 		plt.plot(X, Y, "*")
 		plt.plot(X, y, "o")
 	plt.savefig("LRtest.png")
+	
+	# 看模型的假设检验
+	X = sm.add_constant(X)
+	model = sm.OLS(Y, X).fit()
+	res = get_index(model)
+	print("回归参数", model.params)
+	print("回归结果", res)
+	print(model.summary())
+	
