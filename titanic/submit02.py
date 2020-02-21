@@ -57,14 +57,14 @@ if __name__ == "__main__":
 	print("回归系数:", LR.coef_)
 	print("截距:", LR.intercept_)
 	X = new_train_data[predictors]
-	y = LR.predict(X)
-	print("模型评分:", LR.score(X, Y))
+	y = new_train_data["Survived"]
+	print("模型评分:", LR.score(X, y))
 	i = 241
 	for index in predictors:
 		X = new_train_data[index]
-		Y = new_train_data["Survived"]
+                Y = LR.predict(X)
 		fig = plt.subplot(i)
 		i += 1
-		plt.plot(X, y)
-		plt.plot(X, Y, "o")
-	plt.savefigure("LRtest.png")
+		plt.plot(X, Y)
+		plt.plot(X, y, "o")
+	plt.savefig("LRtest.png")
