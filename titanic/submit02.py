@@ -34,14 +34,14 @@ if __name__ == "__main__":
 	predictors = ['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Embarked', 'Cabin']
 	LR = LinearRegression()
 	# 设置进行交叉验证
-	kf = kFold(5, random_state = 0)
+	kf = KFold(5, random_state = 0)
 	train_target = new_train_data["Survived"]
 	accuracys = []
 	for train, test in kf.split(new_train_data):
 		LR.fit(new_train_data.loc[train, predictors], new_train_data.loc[train, "Survived"])
-		pred = LR.predict(new_train_data[test, predictors])
+		pred = LR.predict(new_train_data.loc[test, predictors])
 		pred[pred >= 0.6] = 1
-		pref[pred < 0.6] = 0
+		pred[pred < 0.6] = 0
 		accuracy = len(pred[pred == new_train_data.loc[test, "Survived"]])/len(test)
 		accuracys.append(accuracy)
 	print(np.mean(accuracys))
