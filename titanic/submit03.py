@@ -71,3 +71,12 @@ if __name__ == "__main__":
 		accuracys.append(accuracy)
 	print(np.mean(accuracys))
 	
+	# 输出预测结果提交到kaggle
+	pred = lr.predict_proba(test_data.loc[:, predictors])
+	new_pred = pred[:, 1]
+	new_pred[new_pred >= 0.5] = 1
+	new_pred[new_pred < 0.5] = 0
+	output = pd.DataFrame({'PassengerId': test_data.PassengerId, 'Survived': new_pred.astype(np.int16)})
+	output.to_csv("submit03.csv", index = False)
+	print("结果输出完毕!")
+	
