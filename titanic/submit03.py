@@ -62,12 +62,12 @@ if __name__ == "__main__":
 	testLR = LR(C = 0.1, solver = "liblinear", penalty = "l2")
 	for train, test in kf.split(train_data):
 		testLR.fit(train_data.loc[train, predictors], train_data.loc[train, "Survived"])
-		pred = testLR.predict_proba(train_data.loc[train, predictors])
-		print(pred.shape)
+		pred = testLR.predict_proba(train_data.loc[test, predictors])
+		# print(pred.shape)
 		new_pred = pred[:, 1]
 		new_pred[new_pred >= 0.5] = 1
 		new_pred[new_pred < 0.5] = 0
-		accuracy = len(new_pred[new_pred == train_data[test, "Survived"]])/len(test)
+		accuracy = len(new_pred[new_pred == train_data.loc[test, "Survived"]])/len(test)
 		accuracys.append(accuracy)
 	print(np.mean(accuracys))
 	
