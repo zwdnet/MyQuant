@@ -61,12 +61,12 @@ if __name__ == "__main__":
 		accuracys.append(accuracy)
 	print(np.mean(accuracys))
 	# 进行预测，输出提交结果。
-	pred = LR.predict(test_data.loc[:, predictors])
-	pred[pred >= 0.6] = 1
-	pred[pred < 0.6] = 0
-	output = pd.DataFrame({'PassengerId': test_data.PassengerId, 'Survived': pred.astype(np.int16)})
-	output.to_csv("submit02.csv", index = False)
-	print("结果输出完毕!")
+		pred = LR.predict(test_data.loc[:, predictors])
+		pred[pred >= 0.6] = 1
+		pred[pred < 0.6] = 0
+		output = pd.DataFrame({'PassengerId': test_data.PassengerId, 'Survived': pred.astype(np.int16)})
+		output.to_csv("submit02.csv", index = False)
+		print("结果输出完毕!")
 	# 输出回归结果
 	print("回归系数:", LR.coef_)
 	print("截距:", LR.intercept_)

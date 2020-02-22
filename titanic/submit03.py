@@ -70,6 +70,18 @@ if __name__ == "__main__":
 		accuracy = len(new_pred[new_pred == train_data.loc[test, "Survived"]])/len(test)
 		accuracys.append(accuracy)
 	print(np.mean(accuracys))
+	# 绘图
+	X = train_data[predictors]
+	y = train_data["Survived"]
+	Y = lr.predict(X)
+	i = 241
+	for index in predictors:
+		X = train_data[index]
+		fig = plt.subplot(i)
+		i += 1
+		plt.plot(X, Y, "*")
+		plt.plot(X, y, "o")
+	plt.savefig("LogistTest.png")
 	
 	# 输出预测结果提交到kaggle
 	pred = lr.predict_proba(test_data.loc[:, predictors])
