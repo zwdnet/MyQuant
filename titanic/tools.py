@@ -182,9 +182,8 @@ def cleanData(train_data, test_data):
 	
 
 # 提取建模的特征
-def featureFind(train_data):
+def featureFind(train_data, features):
 	# 提取特征，构建新的训练数据
-	columns = ['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Embarked', 'Survived', 'Cabin']
-	new_train_data = train_data[columns]
+	new_train_data = train_data[features]
 	# print(new_train_data.info())
 	return new_train_data

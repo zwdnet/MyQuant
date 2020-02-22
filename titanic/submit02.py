@@ -39,7 +39,8 @@ if __name__ == "__main__":
 	tools.exploreData(train_data)
 	# 数据清洗，特征提取
 	train_data, test_data = tools.cleanData(train_data, test_data)
-	new_train_data = tools.featureFind(train_data)
+	features = ['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Embarked', 'Survived', 'Cabin']
+	new_train_data = tools.featureFind(train_data, features)
 	
 	print(new_train_data.head())
 	
