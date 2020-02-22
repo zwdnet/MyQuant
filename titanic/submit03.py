@@ -38,7 +38,7 @@ if __name__ == "__main__":
 	test_data.loc[(test_data.Family >= 4), "Family"] = 2
 	features_train = ['Pclass', 'Sex', 'Age', 'Family', 'Embarked', 'Survived', 'Cabin']
 	train_data = tools.featureFind(train_data, features_train)
-	features_test = ['Pclass', 'Sex', 'Age', 'Family', 'Embarked', 'Cabin']
+	features_test = ['PassengerId', 'Pclass', 'Sex', 'Age', 'Family', 'Embarked', 'Cabin']
 	test_data = tools.featureFind(test_data, features_test)
 	
 	print(train_data.head())
