@@ -38,8 +38,8 @@ if __name__ == "__main__":
 	x_min, x_max = X[:, 0].min() - 0.5, X[:, 0].max() + 0.5
 	y_min, y_max = X[:, 1].min() - 0.5, X[:, 1].max() + 0.5
 	xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
-	
-	Z = Z.reshape(xx.shape)
+        Z = lr.predict(np.c_[xx.ravel(), yy.ravel()])
+        Z = Z.reshape(xx.shape)
 	plt.figure(1, figsize = (8, 6))
 	plt.pcolormesh(xx, yy, Z, cmap=plt.cm.Paired)
 	plt.savefig("result.png")
