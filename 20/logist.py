@@ -5,6 +5,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.datasets import load_iris
+from sklearn.linear_model import LogisticRegression
 
 
 if __name__ == "__main__":
@@ -24,4 +25,12 @@ if __name__ == "__main__":
 	plt.legend(loc = 2)
 	plt.savefig("scatter.png")
 	plt.close()
+	
+	# 进行逻辑回归
+	X = iris.data[:, :2]
+	Y = iris.target
+	
+	# 逻辑回归模型
+	lr = LogisticRegression(C = 1e5)
+	
 	
