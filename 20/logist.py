@@ -42,13 +42,11 @@ if __name__ == "__main__":
 	Z = Z.reshape(xx.shape)
 	plt.figure(1, figsize = (8, 6))
 	plt.pcolormesh(xx, yy, Z, cmap=plt.cm.Paired)
-	plt.savefig("result.png")
-	plt.close()
 	
 	plt.scatter(X[:50, 0], X[:50, 1], color = "red", marker = "o", label = "1")
 	plt.scatter(X[50:100, 0], X[50:100, 1], color = "blue", marker = "x", label = "2")
 	plt.scatter(X[100:, 0], X[100:, 1], color = "green", marker = "+", label = "3")
 	plt.legend(loc = 2)
-	plt.savefig("scatter2.png")
+	plt.savefig("result.png")
 	plt.close()
 	
