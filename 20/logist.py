@@ -16,4 +16,5 @@ if __name__ == "__main__":
 	print(X)
 	Y = [x[1] for x in DD]
 	print(Y)
-        print("test")
+        print("test2")
+        
