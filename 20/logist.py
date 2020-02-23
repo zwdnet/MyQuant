@@ -17,4 +17,5 @@ if __name__ == "__main__":
 	Y = [x[1] for x in DD]
 	print(Y)
         print("test2")
+        print("trst3")
         
