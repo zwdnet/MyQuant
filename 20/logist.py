@@ -9,5 +9,5 @@ from sklearn.datasets import load_iris
 
 if __name__ == "__main__":
 	iris = load_iris()
-	print(iris.head())
+	print(iris.data, iris.target)
 	
