@@ -50,5 +50,5 @@ if __name__ == "__main__":
 	plt.savefig("result.png")
 	plt.close()
 	
-	print(lr.score(xx.ravel(), yy.ravel()))
+	print(lr.score(X, Y))
 	
