@@ -16,6 +16,12 @@ if __name__ == "__main__":
 	print(X)
 	Y = [x[1] for x in DD]
 	print(Y)
-        print("test2")
-        print("trst3")
-        
+	
+	fig = plt.figure()
+	plt.scatter(X[:50], Y[:50], color = "red", marker = "o", label = "1")
+	plt.scatter(X[50:100], Y[50:100], color = "blue", marker = "x", label = "2")
+	plt.scatter(X[100:], Y[100:], color = "green", marker = "+", label = "3")
+	plt.legend(loc = 2)
+	plt.savefig("scatter.png")
+	plt.close()
+	
