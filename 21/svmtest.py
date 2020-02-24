@@ -5,6 +5,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.model_selection import train_test_split
+from sklearn import svm
 
 
 # 转换类别
@@ -27,3 +28,13 @@ if __name__ == "__main__":
     print(train_data)
     print(test_data)
     
+    # 训练svm分类器
+    classifier = svm.SVC(C = 2, kernel = "rbf", gamma = 10, decision_function_shape = "ovr") #ovr 一对多策略
+    
+    # 计算分类准确率
+    print("训练集:", classifier.score(train_data, train_label))
+    print("测试集:", classifier.score(test_data, test_label))
+    
+    # 查看决策函数
+    print("训练决策函数:", classifier.decision_function(train_data))
+    print("预测结果:", classifier.predict(train_data))
