@@ -62,3 +62,21 @@ if __name__ == "__main__":
     plt.xlim(x1_min, x1_max)
     plt.ylim(x2_min, x2_max)
     plt.savefig("result.png")
+
+    # 试一下将四列数据都选入模型
+    # 划分数据与标签
+    x, y = np.split(data, indices_or_sections = (4,), axis = 1)
+    train_data, test_data, train_label, test_label = train_test_split(x, y, random_state = 1, train_size = 0.6, test_size = 0.4)
+    print("训练集大小:", train_data.shape)
+    print(train_data)
+    print(test_data)
+    
+    # 训练svm分类器
+    classifier = svm.SVC(C = 2, kernel = "rbf", gamma = 10, decision_function_shape = "ovr") #ovr 一对多策略
+    classifier.fit(train_data, train_label.ravel())
+    
+    # 计算分类准确率
+    print("四列数据都进行建模的结果")
+    print("训练集:", classifier.score(train_data, train_label))
+    print("测试集:", classifier.score(test_data, test_label))
+    
