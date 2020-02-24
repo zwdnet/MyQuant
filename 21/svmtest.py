@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn import svm
+from matplotlib.colors import ListedColormap
 
 
 # 转换类别
@@ -39,3 +40,25 @@ if __name__ == "__main__":
     # 查看决策函数
     print("训练决策函数:", classifier.decision_function(train_data))
     print("预测结果:", classifier.predict(train_data))
+    
+    # 绘图
+    fig = plt.figure()
+    x1_min, x1_max = x[:, 0].min(), x[:, 0].max()
+    x2_min, x2_max = x[:, 1].min(), x[:, 1].max()
+    x1, x2 = np.mgrid[x1_min:x1_max:200j, x2_min:x2_max:200j]
+    grid_test = np.stack((x1.flat, x2.flat), axis = 1)
+    
+    # 设置颜色
+    cm_light = ListedColormap(['#A0FFA0', '#FFA0A0', '#A0A0FF'])
+    cm_dark = ListedColormap(['g','r','b'])
+    grid_hat = classifier.predict(grid_test)
+    grid_hat = grid_hat.reshape(x1.shape)
+    # 绘图
+    plt.pcolormesh(x1, x2, grid_hat, cmap = cm_light)
+    plt.scatter(x[:, 0], x[:, 1], c = y[:, 0], s = 30, cmap = cm_dark)
+    plt.scatter(test_data[:, 0], test_data[:, 1], c = test_label[:, 0], s = 30, edgecolors = "k", zorder = 2, cmap = cm_dark)
+    plt.xlabel("length")
+    plt.ylabel("width")
+    plt.xlim(x1_min, x1_max)
+    plt.ylim(x2_min, x2_max)
+    plt.savefig("result.png")
