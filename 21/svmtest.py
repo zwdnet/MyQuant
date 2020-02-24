@@ -23,6 +23,7 @@ if __name__ == "__main__":
     x, y = np.split(data, indices_or_sections = (4,), axis = 1)
     x = x[:, 0:2] # 为了画图，只选前两列
     train_data, test_data, train_label, test_label = train_test_split(x, y, random_state = 1, train_size = 0.6, test_size = 0.4)
+    print("训练集大小:", train_data.shape)
     print(train_data)
     print(test_data)
     
