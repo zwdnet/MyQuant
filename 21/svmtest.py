@@ -30,6 +30,7 @@ if __name__ == "__main__":
     
     # 训练svm分类器
     classifier = svm.SVC(C = 2, kernel = "rbf", gamma = 10, decision_function_shape = "ovr") #ovr 一对多策略
+    classifier.fit(train_data, train_label.ravel())
     
     # 计算分类准确率
     print("训练集:", classifier.score(train_data, train_label))
