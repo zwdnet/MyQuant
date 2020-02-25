@@ -28,18 +28,20 @@ if __name__ == "__main__":
     print(data)
     data = transform(data)
     print(data)
+    train_data = data[["Age", "Income", "Alone", "Credit"]]
+    test_data = data["Buy"]
     
-    test = pd.Series({"Age":3, "Income":3, "Alone":2, "Credit":2})
+    # test = pd.Series({"Age":3, "Income":3, "Alone":2, "Credit":2})
+    test = np.array([3, 3, 2, 2])
     print(test)
     
     print("测试输出")
     print(data.values)
-    print(test.values)
     # 进行朴素贝叶斯分类模型训练
     clf = MultinomialNB(alpha = 2.0)
-    clf.fit(data.values, test.data)
+    clf.fit(data.values, test_data)
     print(clf.class_log_prior_)
     # 用模型预测
-    print(clf.predict(test.values))
-    print(clf.predict_proba(test.values))
+    print(clf.predict(test))
+    print(clf.predict_proba(test))
     
