@@ -54,7 +54,7 @@ if __name__ == "__main__":
 	print("测试集大小:", train_y.shape)
 	
 	# 训练SVM分类器
-	classifier = svm.SVC(C = 2, kernel = "rbf", gamma = 10, decision_function_shape = "ovr") 
+	classifier = svm.SVC(C = 2, kernel = "linear", gamma = 10, decision_function_shape = "ovr") 
 	classifier.fit(train_x, x_label)
 	
 	# 计算分类准确率
