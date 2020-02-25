@@ -32,6 +32,9 @@ if __name__ == "__main__":
     test = pd.Series({"Age":3, "Income":3, "Alone":2, "Credit":2})
     print(test)
     
+    print("测试输出")
+    print(data.values)
+    print(test.values)
     # 进行朴素贝叶斯分类模型训练
     clf = MultinomialNB(alpha = 2.0)
     clf.fit(data.values, test.data)
