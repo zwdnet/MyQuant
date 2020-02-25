@@ -3,6 +3,7 @@
 
 
 import pandas as pd
+import numpy as np
 from sklearn.naive_bayes import MultinomialNB
 
 
@@ -36,12 +37,14 @@ if __name__ == "__main__":
     print(test)
     
     print("测试输出")
-    print(data.values)
+    print(train_data.values)
     # 进行朴素贝叶斯分类模型训练
     clf = MultinomialNB(alpha = 2.0)
-    clf.fit(data.values, test_data)
+    clf.fit(train_data.values, test_data)
     print(clf.class_log_prior_)
     # 用模型预测
+    test = test.reshape(1, -1)
+    print(test)
     print(clf.predict(test))
     print(clf.predict_proba(test))
     
