@@ -52,3 +52,12 @@ if __name__ == "__main__":
 	train_x, train_y, x_label, y_label = train_test_split(x, y, random_state = 1, train_size = 0.6, test_size = 0.4)
 	print("训练集大小:", train_x.shape)
 	print("测试集大小:", train_y.shape)
+	
+	# 训练SVM分类器
+	classifier = svm.SVC(C = 2, kernel = "rbf", gamma = 10, decision_function_shape = "ovr") 
+	classifier.fit(train_x, x_label)
+	
+	# 计算分类准确率
+	print("建模的结果")
+    print("训练集:", classifier.score(train_x, x_label))
+    print("测试集:", classifier.score(train_y, y_label))
