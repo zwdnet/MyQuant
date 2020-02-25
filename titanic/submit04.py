@@ -59,5 +59,5 @@ if __name__ == "__main__":
 	
 	# 计算分类准确率
 	print("建模的结果")
-    print("训练集:", classifier.score(train_x, x_label))
-    print("测试集:", classifier.score(train_y, y_label))
+        print("训练集:", classifier.score(train_x, x_label))
+        print("测试集:", classifier.score(train_y, y_label))
