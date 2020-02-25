@@ -65,3 +65,6 @@ if __name__ == "__main__":
 	# 预测，输出结果
 	pred = classifier.predict(test_data[predictors])
 	print(pred)
+	output = pd.DataFrame({'PassengerId': test_data.PassengerId, 'Survived': pred})
+	output.to_csv("submit04.csv", index = False)
+	print("结果输出完毕!")
