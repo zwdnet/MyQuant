@@ -61,3 +61,7 @@ if __name__ == "__main__":
 	print("建模的结果")
 	print("训练集:", classifier.score(train_x, x_label))
 	print("测试集:", classifier.score(train_y, y_label))
+	
+	# 预测，输出结果
+	pred = classifier.predict(test_data[predictors])
+	print(pred)
