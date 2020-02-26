@@ -37,10 +37,10 @@ if __name__ == "__main__":
 	test_data.loc[(test_data.Family >= 4), "Family"] = 2
 	# 将年龄分段按15，55分段
 	train_data.loc[(train_data.Age <= 15), "Age"] = 0
-	train_data.loc[((train_data.Age > 15) and (train_data.Age <= 55)), "Age"] = 1
+	train_data.loc[((train_data.Age > 15) & (train_data.Age <= 55)), "Age"] = 1
 	train_data.loc[(train_data.Age > 55), "Age"] = 3
 	test_data.loc[(test_data.Age <= 15), "Age"] = 0
-	test_data.loc[((test_data.Age > 15) and (test_data.Age <= 55)), "Age"] = 1
+	test_data.loc[((test_data.Age > 15) & (test_data.Age <= 55)), "Age"] = 1
 	test_data.loc[(test_data.Age > 55), "Age"] = 3
 	
 	features_train = ['Pclass', 'Sex', 'Age', 'Family', 'Embarked', 'Survived', 'Cabin']
