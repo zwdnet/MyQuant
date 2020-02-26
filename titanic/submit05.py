@@ -49,6 +49,8 @@ if __name__ == "__main__":
 	model.fit(train_data[features], train_data["Survived"])
 	print("模型评分:", model.score(train_data[features], train_data["Survived"]))
 	result = model.predict(test_data[features])
-	print(result)
-	
+	# 输出到文件
+	output = pd.DataFrame({'PassengerId': test_data.PassengerId, 'Survived': result})
+	output.to_csv("submit05.csv", index = False)
+	print("结果输出完毕!")
 	
