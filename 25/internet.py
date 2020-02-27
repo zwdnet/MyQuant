@@ -15,7 +15,7 @@ if __name__  == "__main__":
     for line in f:
         mac = line.split(",")[2]
         onlinetime = int(line.split(",")[6])
-        starttime = int(line.split(",").split(' ')[1].split(':')[0])
+        starttime = int(line.split(",")[4].split(' ')[1].split(':')[0])
         if mac not in mac2id:
             mac2id[mac] = len(onlinetimes)
             onlinetimes.append((starttime, onlinetime))
@@ -26,7 +26,7 @@ if __name__  == "__main__":
     db = skc.DBSCAN(eps = 0.01, min_samples = 20).fit(X)
     labels = db.labels_
     print("标签:%s" % labels)
-    raito = len(labels[labels[:] == -1]) / len(labels))
+    raito = len(labels[labels[:] == -1])/len(labels)
     print('噪音比例:',format(raito, '.2%')) 
     n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
     print("估计簇数量:%d" % n_clusters_)
