@@ -30,6 +30,7 @@ if __name__ == "__main__":
     faces = dataset.data
     
     plot_gallery("First centered Olivetti faces", faces[:n_components]) 
+    plt.savefig("raw.png")
     estimators = [
     ('Eigenfaces - PCA using randomized SVD', PCA(n_components=6,whiten=True)), ('Non-negative components - NMF',NMF(n_components=6, init='nndsvda', tol=5e-3)) ] 
     for name, estimator in estimators: 
@@ -38,6 +39,6 @@ if __name__ == "__main__":
         estimator.fit(faces) 
         components_ = estimator.components_ 
         plot_gallery(name, components_[:n_components]) 
-    plt.savefig("face.png")
+        plt.savefig(name+".png")
     
     
