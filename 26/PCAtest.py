@@ -5,7 +5,7 @@
 import numpy as np
 from sklearn.decomposition import PCA
 from sklearn.datasets import load_iris
-import matplotlib.pyplotlib as plt
+import matplotlib.pyplot as plt
 
 
 if __name__ == "__main__":
@@ -15,12 +15,13 @@ if __name__ == "__main__":
     # 四维数据降为两维
     pca = PCA(n_components = 2)
     reduced_x = pca.fit_transform(x)
+    print(reduced_x.shape, x.shape)
     # 按类别保存降维后数据
     red_x, red_y = [], []
     blue_x, blue_y = [], []
     green_x, green_y = [], []
     
-    for i in range(len(reduce_x)):
+    for i in range(len(reduced_x)):
         if y[i] == 0:
             red_x.append(reduced_x[i][0])
             red_y.append(reduced_x[i][1])
