@@ -27,7 +27,7 @@ if __name__ == "__main__":
     n_components = n_row*n_col
     image_shape = (64, 64)
     dataset = fetch_olivetti_faces(shuffle = True, random_state = RandomState(0))
-    faces = datasets.data
+    faces = dataset.data
     
     plot_gallery("First centered Olivetti faces", faces[:n_components]) 
     estimators = [
