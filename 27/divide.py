@@ -33,6 +33,6 @@ if __name__ == "__main__":
     pic_new = image.new("L", (row, col))
     for i in range(row):
         for j in range(col):
-            pic_new.putpixel((i, j), 256/label[i][j] + 1)
+            pic_new.putpixel((i,j), int(256/(label[i][j]+1)))
     pic_new.save("result.jpg", "JPEG")
     
