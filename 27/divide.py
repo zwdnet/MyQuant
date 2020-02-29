@@ -26,7 +26,13 @@ if __name__ == "__main__":
     km = KMeans(n_clusters = 3)
     # 聚类获取每个像素点颜色所属的类别
     label = km.fit_predict(imgData)
-    print(label)
+    # print(label)
     label = label.reshape([row, col])
-    print(label)
+    # print(label)
+    # 输出结果到图片
+    pic_new = image.new("L", (row, col))
+    for i in range(row):
+        for j in range(col):
+            pic_new.putpixel((i, j), 256/label[i][j] + 1)
+    pic_new.save("result.jpg", "JPEG")
     
