@@ -6,6 +6,8 @@ from sklearn.neighbors import KNeighborsClassifier as KNN
 from sklearn.datasets import load_iris
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import cross_val_score
+import numpy as np
+from sklearn.naive_bayes import GaussianNB
 
 
 if __name__ == "__main__":
@@ -24,4 +26,11 @@ if __name__ == "__main__":
     # 交叉验证
     score = cross_val_score(clf, data.data, data.target, cv = 10)
     print(score)
+    
+    # 贝叶斯分类
+    X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
+    Y = np.array([1, 1, 1, 2, 2, 2])
+    bayes = GaussianNB(priors = None)
+    bayes.fit(X, Y)
+    print(bayes.predict([[-0.8, -1.0]]))
     
