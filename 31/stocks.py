@@ -34,6 +34,16 @@ if __name__ == "__main__":
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2)
         clf.fit(x_train, y_train)
         result.append(np.mean(y_test == clf.predict(x_test)))
-    print("svm预测准确率:")
+    print("用rbf核函数的预测准确率:")
     print(result)
+    
+    clf = svm.SVC(kernel = "sigmoid")
+    result = [] 
+    for i in range(5):
+        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2)
+        clf.fit(x_train, y_train)
+        result.append(np.mean(y_test == clf.predict(x_test)))
+    print("用sigmoid核函数的预测准确率:")
+    print(result)
+    
     
