@@ -5,7 +5,7 @@
 import pandas as pd
 import numpy as np
 from sklearn import svm
-from sklearn import cross_validation
+from sklearn.model_selection import train_test_split
 import tushare as ts
 
 
@@ -29,9 +29,11 @@ if __name__ == "__main__":
             y[i] = 0
     # 建模
     clf = svm.SVC(kernel = "rbf")
-    result = [] for i in range(5):
-        x_train, x_test, y_train, y_test = cross_validation.train_test_split(x, y, test_size = 0.2)
+    result = [] 
+    for i in range(5):
+        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2)
         clf.fit(x_train, y_train)
         result.append(np.mean(y_test == clf.predict(x_test)))
-    print("svm预测准确率:%.lf" % result)
+    print("svm预测准确率:")
+    print(result)
     
