@@ -32,8 +32,8 @@ if __name__ == "__main__":
     lin_reg2 = linear_model.LinearRegression()
     lin_reg2.fit(X_poly, y)
     # 获取回归参数
-    coef = linear.coef_
-    inter = linear.intercept_
+    coef = lin_reg2.coef_
+    inter = lin_reg2.intercept_
     print(coef, inter)
     # 可视化
     y = lin_reg2.predict(poly_reg.fit_transform(X))
