@@ -10,13 +10,16 @@ from sklearn.preprocessing import PolynomialFeatures
 
 
 if __name__ == "__main__":
-    # 读取数据集     
+    # 读取数据集
+    datasets_X = []
     datasets_Y = [] 
     fr = open('data.csv','r') 
-    lines = fr.readlines() for line in lines:
+    lines = fr.readlines()
+    for line in lines:
         items = line.strip().split(',')
         datasets_X.append(int(items[0]))
-        datasets_Y.append(int(items[1])
+        datasets_Y.append(int(items[1]))
+    print(datasets_X)
     length = len(datasets_X)
     datasets_X = np.array(datasets_X).reshape([length,1])
     datasets_Y = np.array(datasets_Y)
