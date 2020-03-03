@@ -17,6 +17,7 @@ if __name__ == "__main__":
     minX = min(x)
     maxX = max(x)
     length = len(x)
+    X = np.arange(minX,maxX).reshape([-1,1]) 
     print(x.shape, y.shape) 
     print(x, x.reshape(-1, length))
     plt.figure()
@@ -35,7 +36,7 @@ if __name__ == "__main__":
     inter = linear.intercept_
     print(coef, inter)
     # 可视化
-    y = lin_reg2.predict(poly_reg.fit_transform(x.reshape([length, 1])))
+    y = lin_reg2.predict(poly_reg.fit_transform(X))
     print(x.shape, y.shape)
     plt.plot(x, y, color = "black")
     plt.savefig("result.png")
