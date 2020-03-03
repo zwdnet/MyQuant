@@ -36,7 +36,7 @@ if __name__ == "__main__":
     inter = lin_reg2.intercept_
     print(coef, inter)
     # 可视化
-    y = lin_reg2.predict(poly_reg.fit_transform(X))
+    y = lin_reg2.predict(poly_reg.fit_transform(X_poly))
     print(x.shape, y.shape)
     plt.plot(x, y, color = "black")
     plt.savefig("result.png")
