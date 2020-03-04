@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.datasets import load_boston
+import seaborn as sns
 
 
 if __name__ == "__main__":
@@ -16,3 +17,5 @@ if __name__ == "__main__":
     boston["PRICE"] = y
     print(boston.head())
     print(boston.info())
+    g = sns.pairplot(boston)
+    g.savefig("boston.png")
