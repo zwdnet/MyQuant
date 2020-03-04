@@ -55,3 +55,9 @@ if __name__ == "__main__":
     print("lr的均方误差为：",mean_squared_error(y_test, y_lr_predict))
     print("Rd的均方误差为：",mean_squared_error(y_test, y_rd_predict))
     
+    # 绘图, 横坐标为RM属性
+    plt.figure()
+    plt.scatter(x_test[:][5], y_test[:][5], red = "black")
+    plt.plot(x_test[:][5], y_lr_predict, red = "red")
+    plt.plot(x_test[:][5], y_rd_predict, red = "blue")
+    plt.savefig("result.png")
