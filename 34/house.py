@@ -5,15 +5,14 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.datasets load_boston
+from sklearn.datasets import load_boston
 
 
 if __name__ == "__main__":
     # 加载数据
     data = load_boston()
-    boston = np.DataFrame(data.data, columns = data.feature_names)
+    boston = pd.DataFrame(data.data, columns = data.feature_names)
     y = data.target
+    boston["PRICE"] = y
     print(boston.head())
-    print(boston.summary())
-    print(y)
-    
+    print(boston.info())
