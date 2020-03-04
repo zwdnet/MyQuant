@@ -19,7 +19,7 @@ if __name__ == "__main__":
     boston = pd.DataFrame(data.data, columns = data.feature_names)
     y = data.target
     boston["PRICE"] = y
-    print(boston.head())
+    # print(boston.head())
     print(boston.info())
     # g = sns.pairplot(boston)
     # g.savefig("boston.png")
@@ -27,6 +27,8 @@ if __name__ == "__main__":
     x = boston.iloc[:, :-2].values
     y = boston["PRICE"].values
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.25)
+    # print(x_test.shape)
+    # print(x_test[:][5].shape)
     
     # 标准化处理
     # std_x = StandardScaler()
@@ -42,14 +44,14 @@ if __name__ == "__main__":
     lr.fit(x_train, y_train)
     y_lr_predict = lr.predict(x_test)
     # y_lr_predict = std_y.inverse_transform(y_lr_predict)
-    print("Lr预测值:", y_lr_predict)
+    # print("Lr预测值:", y_lr_predict)
     
     # 岭回归
     rd = Ridge(alpha = 0.01)
     rd.fit(x_train, y_train)
     y_rd_predict = rd.predict(x_test)
     # y_rd_predict = std_y.inverse_transform(y_rd_predict)
-    print("Ridge预测值:", y_rd_predict)
+    # print("Ridge预测值:", y_rd_predict)
     
     # 比较两种方法
     print("lr的均方误差为：",mean_squared_error(y_test, y_lr_predict))
@@ -57,7 +59,9 @@ if __name__ == "__main__":
     
     # 绘图, 横坐标为RM属性
     plt.figure()
-    plt.scatter(x_test[:][5], y_test[:][5], red = "black")
-    plt.plot(x_test[:][5], y_lr_predict, red = "red")
-    plt.plot(x_test[:][5], y_rd_predict, red = "blue")
+    x_test_RM = [x[5] for x in x_test]
+    print(len(x_test_RM), y_test.shape)
+    plt.scatter(x_test_RM, y_test, color = "black")
+    plt.plot(x_test_RM, y_lr_predict, color = "red")
+    plt.plot(x_test_RM, y_rd_predict, color = "blue")
     plt.savefig("result.png")
