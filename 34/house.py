@@ -21,7 +21,7 @@ if __name__ == "__main__":
     # g = sns.pairplot(boston)
     # g.savefig("boston.png")
     # 分割训练测试数据
-    x = boston[:, :-2].value
-    y = boston["PRICE"].value
+    x = boston.iloc[:, :-2].values
+    y = boston["PRICE"].values
     print(x, y)
     
