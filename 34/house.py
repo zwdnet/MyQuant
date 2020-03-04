@@ -7,6 +7,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.datasets import load_boston
 import seaborn as sns
+from sklearn.model_selection import train_test_split
 
 
 if __name__ == "__main__":
@@ -17,5 +18,10 @@ if __name__ == "__main__":
     boston["PRICE"] = y
     print(boston.head())
     print(boston.info())
-    g = sns.pairplot(boston)
-    g.savefig("boston.png")
+    # g = sns.pairplot(boston)
+    # g.savefig("boston.png")
+    # 分割训练测试数据
+    x = boston[:, :-2].value
+    y = boston["PRICE"].value
+    print(x, y)
+    
