@@ -41,7 +41,7 @@ if __name__ == "__main__":
     X /= X.max()
     
     # 建立神经网络
-    clf = MLPclassifier(hidden_layer_sizes = (100,), activation = "logistic", solver = "adam", learning_rate_init = 0.0001, max_iter = 2000)
+    clf = MLPClassifier(hidden_layer_sizes = (100,), activation = "logistic", solver = "adam", learning_rate_init = 0.0001, max_iter = 2000)
     # 训练神经网络
     clf.fit(X, y)
     # 载入测试集
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     X_test /= X_test.max()
     # 测试
     res = clf.predict(X_test)
-    error_num = 0
+    error_sum = 0
     num = len(X_test)
     for i in range(num):
         if np.sum(res[i] == y_test[i]) < 10:
