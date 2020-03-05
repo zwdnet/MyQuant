@@ -4,7 +4,7 @@
 
 import numpy as np
 from os import listdir
-from sklearn.neural_network import MLPclassifier
+from sklearn.neural_network import MLPClassifier
 
 
 # 加载训练数据
