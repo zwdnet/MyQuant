@@ -247,6 +247,7 @@ def FamilyTicketEng(df_all):
         df["Survival_Rate"] = (df["Ticket_Survival_Rate"] + df["Family_Survival_Rate"]) / 2
         df["Survival_Rate_NA"] = (df["Ticket_Survival_Rate_NA"] + df["Family_Survival_Rate_NA"]) / 2
         
+    df_all = tools.concat_df(df_train, df_test)
     return df_all
     
     
@@ -254,7 +255,8 @@ def FamilyTicketEng(df_all):
 def dataTransform(df_all):
     # 使用LabelEncoder将分类特征转换为数值类型
     non_numeric_features = ["Embarked", "Sex", "Deck", "Title", "Family_Size_Grouped", "Age", "Fare"]
-    for df in dfs:
+    df_train, df_test = tools.divide_df(df_all)
+    for df in [df_train, df_test]:
         for feature in non_numeric_features:
             df[feature] = LabelEncoder().fit_transform(df[feature])
             
@@ -262,7 +264,7 @@ def dataTransform(df_all):
     cat_features = ["Pclass", "Sex", "Deck", "Embarked", "Title", "Family_Size_Grouped"]
     encoded_features = []
     
-    for df in dfs:
+    for df in [df_train, df_test]:
         for feature in cat_features:
             encoded_feat = OneHotEncoder().fit_transform(df[feature].values.reshape(-1,1)).toarray()
             n = df[feature].nunique()
@@ -278,8 +280,6 @@ def dataTransform(df_all):
     df_all = tools.concat_df(df_train, df_test)
     drop_cols = ['Deck', 'Embarked', 'Family', 'Family_Size', 'Family_Size_Grouped', 'Survived', 'Name', 'Parch', 'PassengerId', 'Pclass', 'Sex', 'SibSp', 'Ticket', 'Title', 'Ticket_Survival_Rate','Family_Survival_Rate', 'Ticket_Survival_Rate_NA', 'Family_Survival_Rate_NA']
     df_all.drop(columns = drop_cols, inplace = True)
-    print(df_all.head())
-    print(df_all.info())
     
     return df_all
     
