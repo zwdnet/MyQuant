@@ -281,7 +281,7 @@ def dataTransform(df_all):
     drop_cols = ['Deck', 'Embarked', 'Family', 'Family_Size', 'Family_Size_Grouped', 'Survived', 'Name', 'Parch', 'PassengerId', 'Pclass', 'Sex', 'SibSp', 'Ticket', 'Title', 'Ticket_Survival_Rate','Family_Survival_Rate', 'Ticket_Survival_Rate_NA', 'Family_Survival_Rate_NA']
     df_all.drop(columns = drop_cols, inplace = True)
     
-    return df_all
+    return df_all, drop_cols
     
     
 # 进行特征工程
@@ -292,7 +292,7 @@ def feature_engineer(df_all):
     df_all = TicketEng(df_all)
     df_all = TitleMarriedEng(df_all)
     df_all = FamilyTicketEng(df_all)
-    df_all = dataTransform(df_all)
+    df_all, drop_cols = dataTransform(df_all)
     
-    return df_all
+    return df_all, drop_cols
     

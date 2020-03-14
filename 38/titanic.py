@@ -29,4 +29,15 @@ if __name__ == "__main__":
     print(df_all.head())
     
     # ③特征工程
-    df_all = fe.feature_engineer(df_all)
+    df_all, drop_cols = fe.feature_engineer(df_all)
+    
+    # ④建模
+    # 划分数据
+    df_train, df_test = tools.divide_df(df_all)
+    X_train = StandardScaler().fit_transform(df_train.drop(columns = drop_cols))
+    y_train = df["Survived"].values
+    X_test = StandardScaler().fit_transform(df_test.drop(columns = drop_cols))
+    
+    print('X_train shape: {}'.format(X_train.shape))
+    print('y_train shape: {}'.format(y_train.shape))
+    print('X_test shape: {}'.format(X_test.shape))
