@@ -146,4 +146,5 @@ if __name__ == "__main__":
     plt.close()
     
     # 画ROC曲线
-    
+    plot_roc_curve(fprs, tprs)
+
