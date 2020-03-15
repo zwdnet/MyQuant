@@ -14,7 +14,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 from sklearn.preprocessing import StandardScaler
-import sklearn.ensemble.RandomForestClassifier as RFC
+from sklearn.ensemble import RandomForestClassifier as RFC
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import auc, roc_curve
 
@@ -52,7 +52,8 @@ if __name__ == "__main__":
     N = 5
     oob = 0
     probs = pd.DataFrame(np.zeros((len(X_test), N*2)), columns = ['Fold_{}_Prob_{}'.format(i, j) for i in range(1, N + 1) for j in range(2)])
-    importances = pd.DataFrame(np.zeros((X_train.shape[1], N)), columns=['Fold_{}'.format(i) for i in range(1, N + 1)], index=df_all.columns)
+    df_temp = df_all.drop(["Survived"], axis = 1)
+    importances = pd.DataFrame(np.zeros((X_train.shape[1], N)), columns=['Fold_{}'.format(i) for i in range(1, N + 1)], index=df_temp.columns)
     fprs, tprs, scores = [], [], []
     skf = StratifiedKFold(n_splits=N, random_state=N, shuffle=True)
     
