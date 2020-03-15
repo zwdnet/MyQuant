@@ -147,4 +147,20 @@ if __name__ == "__main__":
     
     # 画ROC曲线
     plot_roc_curve(fprs, tprs)
+    
+    # 预测结果提交
+    class_survived = [col for col in probs.columns if col.endswith('Prob_1')]
+    probs['1'] = probs[class_survived].sum(axis=1) / N
+    probs['0'] = probs.drop(columns=class_survived).sum(axis=1) / N
+    probs['pred'] = 0
+    pos = probs[probs['1'] >= 0.5].index
+    probs.loc[pos, 'pred'] = 1
+
+    y_pred = probs['pred'].astype(int)
+
+    submission_df = pd.DataFrame(columns=['PassengerId', 'Survived'])
+    submission_df['PassengerId'] = df_test['PassengerId']
+    submission_df['Survived'] = y_pred.values
+    submission_df.to_csv('submissions.csv', header=True, index=False)
+    submission_df.head(10)
 
