@@ -278,7 +278,7 @@ def dataTransform(df_all):
     
     # 将数据组合，保留有用的特征
     df_all = tools.concat_df(df_train, df_test)
-    drop_cols = ['Deck', 'Embarked', 'Family', 'Family_Size', 'Family_Size_Grouped', 'Name', 'Parch', 'PassengerId', 'Pclass', 'Sex', 'SibSp', 'Ticket', 'Title', 'Ticket_Survival_Rate','Family_Survival_Rate', 'Ticket_Survival_Rate_NA', 'Family_Survival_Rate_NA']
+    drop_cols = ['Deck', 'Embarked', 'Family', 'Family_Size', 'Family_Size_Grouped', 'Name', 'Parch', 'Pclass', 'Sex', 'SibSp', 'Ticket', 'Title', 'Ticket_Survival_Rate','Family_Survival_Rate', 'Ticket_Survival_Rate_NA', 'Family_Survival_Rate_NA']
     df_all.drop(columns = drop_cols, inplace = True)
     
     return df_all
