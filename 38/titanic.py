@@ -84,5 +84,16 @@ if __name__ == "__main__":
     
     print('Average OOB Score: {}'.format(oob))
     
+    # 画图看看
+    importances['Mean_Importance'] = importances.mean(axis=1)
+    importances.sort_values(by='Mean_Importance', inplace=True, ascending=False)
     
+    plt.figure(figsize=(15, 20))
+    sns.barplot(x='Mean_Importance', y=importances.index, data=importances)
     
+    plt.xlabel('')
+    plt.tick_params(axis='x', labelsize=15)
+    plt.tick_params(axis='y', labelsize=15)
+    plt.title('Random Forest Classifier Mean Feature Importance Between Folds', size=15)
+    
+    plt.savefig("RandomForest.png")
