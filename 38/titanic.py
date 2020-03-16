@@ -33,7 +33,7 @@ def divide_data(df_all):
     print('y_train shape: {}'.format(y_train.shape))
     print('X_test shape: {}'.format(X_test.shape))
     
-    return (X_train, y_train, X_test)
+    return (X_train, y_train, X_test, df_test)
 
 
 # 画ROC曲线
@@ -83,12 +83,12 @@ def plot_roc_curve(fprs, tprs):
             
             
 # 对模型进行k折交叉检验
-def testModel(df_all, data, model):
+def testModel(df_all, data, model, N = 5):
     X_train = data[0]
     y_train = data[1]
     X_test = data[2]
     
-    N = 5
+    # N = 5
     oob = 0
     probs = pd.DataFrame(np.zeros((len(X_test), N*2)), columns = ['Fold_{}_Prob_{}'.format(i, j) for i in range(1, N + 1) for j in range(2)])
     df_temp = df_all.drop(["Survived"], axis = 1)
@@ -116,10 +116,10 @@ def testModel(df_all, data, model):
         # X_test概率
         probs.loc[:, 'Fold_{}_Prob_0'.format(fold)] = model.predict_proba(X_test)[:, 0]
         probs.loc[:, 'Fold_{}_Prob_1'.format(fold)] = model.predict_proba(X_test)[:, 1]
-        importances.iloc[:, fold - 1] = leaderboard_model.feature_importances_
+        importances.iloc[:, fold - 1] = model.feature_importances_
         
-        oob += leaderboard_model.oob_score_ / N
-        print('Fold {} OOB Score: {}\n'.format(fold, leaderboard_model.oob_score_))
+        oob += model.oob_score_ / N
+        print('Fold {} OOB Score: {}\n'.format(fold, model.oob_score_))
     
     print('Average OOB Score: {}'.format(oob))
     
@@ -144,7 +144,7 @@ def importanceAna(importances, fprs, tprs):
     
     
 # 创建提交文件
-def makeSubmission(probs, df_test):
+def makeSubmission(probs, df_test, N):
     class_survived = [col for col in probs.columns if col.endswith('Prob_1')]
     probs['1'] = probs[class_survived].sum(axis=1) / N
     probs['0'] = probs.drop(columns=class_survived).sum(axis=1) / N
@@ -163,7 +163,8 @@ def makeSubmission(probs, df_test):
     
 # 建模
 def model(df_all):
-    X_train, y_train, X_test = divide_data(df_all)
+    N = 5
+    X_train, y_train, X_test, df_test = divide_data(df_all)
     
     single_best_model = RFC(criterion = "gini", n_estimators = 1100, max_depth = 5, min_samples_split=4, min_samples_leaf=5, max_features='auto', oob_score=True, random_state=SEED, n_jobs=-1, verbose=1)
     leaderboard_model = RFC(criterion = "gini", n_estimators = 1750, max_depth = 7, min_samples_split=6, min_samples_leaf=6, max_features='auto', oob_score=True, random_state=SEED, n_jobs=-1, verbose=1)
@@ -179,7 +180,7 @@ def model(df_all):
     plot_roc_curve(fprs, tprs)
     
     # 预测结果提交
-    makeSubmission(probs, df_test)
+    makeSubmission(probs, df_test, N)
         
 if __name__ == "__main__":
     # 载入数据
