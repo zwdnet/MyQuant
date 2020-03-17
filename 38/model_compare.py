@@ -85,3 +85,6 @@ def model_compare(df_all):
     'Score': [acc_svc, acc_knn, acc_log, acc_rand, acc_bys, acc_perc, acc_sgd, acc_lin_svc, acc_tree]})
     print(models.sort_values(by='Score', ascending=False))
     
+    # 用决策树模型进行预测
+    tools.Submission(treeModel, test_df, "decisetree.csv")
+    

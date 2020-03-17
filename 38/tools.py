@@ -46,3 +46,12 @@ def load_data():
     
     return df_all
     
+    
+# 创建提交kaggle的结果文件
+def Submission(model, df_test, filename):
+    submission_df = pd.DataFrame(columns=['PassengerId', 'Survived'])
+    submission_df['PassengerId'] = df_test['PassengerId']
+    submission_df['Survived'] = model.predict(df_test.drop('PassengerId', axis=1).copy())
+    submission_df.to_csv(filename, header=True, index=False)
+    print(submission_df.head(10))
+    
