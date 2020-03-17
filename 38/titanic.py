@@ -23,6 +23,7 @@ from sklearn.preprocessing import StandardScaler
 SEED = 42
 
 
+# 绘制模型的学习曲线
 def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None, n_jobs=1,train_sizes=np.linspace(.1, 1.0, 5),verbose=0):
     plt.figure()
     plt.title(title)
@@ -46,6 +47,19 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None, n_jobs=1,tra
     return plt
 
 
+# 学习曲线
+# parameters 模型参数
+# model 模型
+# df_all 数据
+# filename 输出图片的文件名
+def learnning_curve(parameters, model, title, df_all, filename):
+    df_train, df_test = tools.divide_df(df_all)
+    X_train = StandardScaler().fit_transform(df_train.drop(["Survived"], axis = 1))
+    y_train = df_train["Survived"].values
+    plt = plot_learning_curve(model(**parameters), title, X_train, y_train, cv=None,  n_jobs=-1, train_sizes=[50, 100, 150, 200, 250, 350, 400, 450, 500])
+    plt.savefig(filename)
+
+
 if __name__ == "__main__":
     # 载入数据
     df_all = tools.load_data()
@@ -67,8 +81,5 @@ if __name__ == "__main__":
     # ⑤模型评估
     rf_parameters = {"criterion":"gini", "n_estimators":1750, "max_depth":7, "min_samples_split":6, "min_samples_leaf":6, "max_features":'auto', "oob_score":True, "random_state":SEED, "n_jobs":-1, "verbose":1}
     title = "RandomForest"
-    df_train, df_test = tools.divide_df(df_all)
-    X_train = StandardScaler().fit_transform(df_train.drop(["Survived"], axis = 1))
-    y_train = df_train["Survived"].values
-    plt = plot_learning_curve(RFC(**rf_parameters), title, X_train, y_train, cv=None,  n_jobs=-1, train_sizes=[50, 100, 150, 200, 250, 350, 400, 450, 500])
-    plt.savefig("learningCurve.png")
+    filename = "learningCurve.png"
+    learnning_curve(rf_parameters, RFC, title, df_all, filename)
