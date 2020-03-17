@@ -15,6 +15,8 @@ sns.set(style = "darkgrid")
 import warnings
 warnings.filterwarnings('ignore')
 
+from sklearn.ensemble import RandomForestClassifier as RFC
+
 
 if __name__ == "__main__":
     # 载入数据
@@ -35,6 +37,7 @@ if __name__ == "__main__":
     modeling.model(df_all)
     
     # ⑤模型评估
+    SEED = 42
     rf_parameters = {"criterion":"gini", "n_estimators":1750, "max_depth":7, "min_samples_split":6, "min_samples_leaf":6, "max_features":'auto', "oob_score":True, "random_state":SEED, "n_jobs":-1, "verbose":1}
     title = "RandomForest"
     filename = "learningCurve.png"
