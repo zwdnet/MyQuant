@@ -15,8 +15,13 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-from sklearn.learning_curve import learning_curve
+from sklearn.model_selection import learning_curve
 from sklearn.ensemble import RandomForestClassifier as RFC
+from sklearn.preprocessing import StandardScaler
+
+
+SEED = 42
+
 
 def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None, n_jobs=1,train_sizes=np.linspace(.1, 1.0, 5),verbose=0):
     plt.figure()
