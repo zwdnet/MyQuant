@@ -17,13 +17,12 @@ from sklearn.model_selection import GridSearchCV       #网格搜索
 import tools
 
 
-# 逻辑回归
-def test_logistic(X_train, Y_train):
-    LogModel = LogisticRegression()
-    LogModel.fit(X_train, Y_train)
+# 模型测试
+def ModelTest(Model, X_train, Y_train):
+    Model.fit(X_train, Y_train)
     # 对模型评分
-    acc_log = round(LogModel.score(X_train, Y_train)*100, 2)
-    return (LogModel, acc_log)
+    acc_result = round(Model.score(X_train, Y_train)*100, 2)
+    return acc_result
 
 
 # 尝试各种模型
@@ -36,6 +35,12 @@ def model_compare(df_all):
     print(X_train.shape, Y_train.shape, X_test.shape)
     
     # 逻辑回归模型
-    logModel, acc_log = test_logistic(X_train, Y_train)
+    LogModel = LogisticRegression()
+    acc_log = ModelTest(LogModel, X_train, Y_train)
     print("逻辑回归结果:{}".format(acc_log))
+    
+    # SVM支持向量机模型
+    SVMModel = SVC()
+    acc_svc = ModelTest(SVMModel, X_train, Y_train)
+    print("支持向量机结果:{}".format(acc_svc))
     
