@@ -15,6 +15,8 @@ from sklearn.model_selection import GridSearchCV       #网格搜索
 
 
 import tools
+import numpy as np
+import pandas as pd
 
 
 # 模型测试
@@ -29,7 +31,7 @@ def ModelTest(Model, X_train, Y_train):
 def model_compare(df_all):
     # 划分数据
     train_df, test_df = tools.divide_df(df_all)
-    X_train = train_df.drop("Survived", axis = 1)
+    X_train = train_df.drop(["Survived", "PassengerId"], axis = 1)
     Y_train = train_df["Survived"]
     X_test = test_df
     print(X_train.shape, Y_train.shape, X_test.shape)

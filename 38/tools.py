@@ -51,7 +51,9 @@ def load_data():
 def Submission(model, df_test, filename):
     submission_df = pd.DataFrame(columns=['PassengerId', 'Survived'])
     submission_df['PassengerId'] = df_test['PassengerId']
-    submission_df['Survived'] = model.predict(df_test.drop('PassengerId', axis=1).copy())
+    df_test = df_test.drop("PassengerId", axis = 1).copy()
+    submission_df['Survived'] = model.predict(df_test)
+    submission_df['Survived'] = submission_df['Survived'].astype(int)
     submission_df.to_csv(filename, header=True, index=False)
     print(submission_df.head(10))
     
