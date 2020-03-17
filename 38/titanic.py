@@ -6,6 +6,7 @@ import dataHandle as dh
 import FeatureEnginner as fe
 import modeling
 import modelevaluation as me
+import model_compare as mc
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -42,3 +43,6 @@ if __name__ == "__main__":
     title = "RandomForest"
     filename = "learningCurve.png"
     me.learnning_curve(rf_parameters, RFC, title, df_all, filename)
+    
+    # ⑥比较不同的模型
+    mc.model_compare(df_all)
