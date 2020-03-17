@@ -17,6 +17,15 @@ from sklearn.model_selection import GridSearchCV       #网格搜索
 import tools
 
 
+# 逻辑回归
+def test_logistic(X_train, Y_train):
+    LogModel = LogisticRegression()
+    LogModel.fit(X_train, Y_train)
+    # 对模型评分
+    acc_log = round(LogModel.score(X_train, Y_train)*100, 2)
+    return (LogModel, acc_log)
+
+
 # 尝试各种模型
 def model_compare(df_all):
     # 划分数据
@@ -25,5 +34,8 @@ def model_compare(df_all):
     Y_train = train_df["Survived"]
     X_test = test_df
     print(X_train.shape, Y_train.shape, X_test.shape)
-    print(X_train.info())
-    print(X_test.info())
+    
+    # 逻辑回归模型
+    logModel, acc_log = test_logistic(X_train, Y_train)
+    print("逻辑回归结果:{}".format(acc_log))
+    
