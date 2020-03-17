@@ -25,4 +25,5 @@ def model_compare(df_all):
     Y_train = train_df["Survived"]
     X_test = test_df
     print(X_train.shape, Y_train.shape, X_test.shape)
-    
+    print(X_train.info())
+    print(X_test.info())

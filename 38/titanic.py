@@ -35,14 +35,14 @@ if __name__ == "__main__":
     df_all = fe.feature_engineer(df_all)
     
     # ④建模
-    modeling.model(df_all)
+    # modeling.model(df_all)
     
     # ⑤模型评估
-    SEED = 42
-    rf_parameters = {"criterion":"gini", "n_estimators":1750, "max_depth":7, "min_samples_split":6, "min_samples_leaf":6, "max_features":'auto', "oob_score":True, "random_state":SEED, "n_jobs":-1, "verbose":1}
-    title = "RandomForest"
-    filename = "learningCurve.png"
-    me.learnning_curve(rf_parameters, RFC, title, df_all, filename)
+    # SEED = 42
+    # rf_parameters = {"criterion":"gini", "n_estimators":1750, "max_depth":7, "min_samples_split":6, "min_samples_leaf":6, "max_features":'auto', "oob_score":True, "random_state":SEED, "n_jobs":-1, "verbose":1}
+    # title = "RandomForest"
+    # filename = "learningCurve.png"
+    # me.learnning_curve(rf_parameters, RFC, title, df_all, filename)
     
     # ⑥比较不同的模型
     mc.model_compare(df_all)
