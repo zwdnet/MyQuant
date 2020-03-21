@@ -20,12 +20,15 @@ import tools
 
 
 # 划分并处理数据
-def divide_data(df_all):
+def divide_data(df_all, feature_top_n):
     # 划分数据
     df_train, df_test = tools.divide_df(df_all)
-    X_train = StandardScaler().fit_transform(df_train.drop(["Survived"], axis = 1))
+    # X_train = StandardScaler().fit_transform(df_train.drop(["Survived"], axis = 1))
+    # y_train = df_train["Survived"].values
+    # X_test = StandardScaler().fit_transform(df_test)
+    X_train = StandardScaler().fit_transform(df_train[feature_top_n], axis = 1)
     y_train = df_train["Survived"].values
-    X_test = StandardScaler().fit_transform(df_test)
+    X_test = StandardScaler().fit_transform(df_test[feature_top_n])
     
     print('X_train shape: {}'.format(X_train.shape))
     print('y_train shape: {}'.format(y_train.shape))
@@ -160,9 +163,9 @@ def makeSubmission(probs, df_test, N):
     
     
 # 建模
-def model(df_all):
+def model(df_all, feature_top_n):
     N = 5
-    X_train, y_train, X_test, df_test = divide_data(df_all)
+    X_train, y_train, X_test, df_test = divide_data(df_all, feature_top_n)
     
     single_best_model = RFC(criterion = "gini", n_estimators = 1100, max_depth = 5, min_samples_split=4, min_samples_leaf=5, max_features='auto', oob_score=True, random_state=SEED, n_jobs=-1, verbose=1)
     leaderboard_model = RFC(criterion = "gini", n_estimators = 1750, max_depth = 7, min_samples_split=6, min_samples_leaf=6, max_features='auto', oob_score=True, random_state=SEED, n_jobs=-1, verbose=1)

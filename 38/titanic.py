@@ -7,6 +7,7 @@ import FeatureEnginner as fe
 import modeling
 import modelevaluation as me
 import model_compare as mc
+import MergeModels as mm
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -32,7 +33,7 @@ if __name__ == "__main__":
     print(df_all.head())
     
     # ③特征工程
-    df_all = fe.feature_engineer(df_all)
+    df_all, top_features = fe.feature_engineer(df_all)
     
     # ④建模
     # modeling.model(df_all)
@@ -45,4 +46,7 @@ if __name__ == "__main__":
     # me.learnning_curve(rf_parameters, RFC, title, df_all, filename)
     
     # ⑥比较不同的模型
-    mc.model_compare(df_all)
+    # mc.model_compare(df_all)
+    
+    # ⑦模型融合
+    mm.MergeModels(df_all, top_features)
