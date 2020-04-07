@@ -17,8 +17,79 @@ from scipy import stats
 from scipy.stats import norm, skew
 pd.set_option("display.float_format", lambda x:"{:.3f}".format(x))
 
+from sklearn.linear_model import ElasticNet, Lasso,  BayesianRidge, LassoLarsIC
+from sklearn.ensemble import RandomForestRegressor,  GradientBoostingRegressor
+from sklearn.kernel_ridge import KernelRidge
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import RobustScaler
+from sklearn.base import BaseEstimator, TransformerMixin, RegressorMixin, clone
+from sklearn.model_selection import KFold, cross_val_score, train_test_split
+from sklearn.metrics import mean_squared_error
+import xgboost as xgb
+import lightgbm as lgb
+
 
 from sklearn.preprocessing import LabelEncoder
+
+
+# 先建立交叉验证策略
+def rmsle_cv(model, train, y_train):
+    n_folds = 5
+    kf = KFold(n_folds, shuffle=True, random_state = 42).get_n_splits(train.values)
+    rmse = np.sqrt(-cross_val_score(model, train.values, y_train, scoring="neg_mean_squared_error", cv = kf))
+    return(rmse)
+    
+    
+# 模型堆栈,求模型平均值
+class AveragingModels(BaseEstimator, RegressorMixin, TransformerMixin):
+    def __init__(self, models):
+        self.models = models
+        
+    # 用训练数据训练模型
+    def fit(self, X, y):
+        self.models_ = [clone(x) for x in self.models]
+        
+        for model in self.models_:
+            model.fit(X, y)
+            
+        return self
+        
+    # 做出预测并取平均值
+    def predict(self, X):
+        predictions = np.column_stack([model.predict(X) for model in self.models_])
+        return np.mean(predictions, axis=1)
+        
+        
+# 加入元模型的stacking
+class StackingAveragedModels(BaseEstimator, RegressorMixin, TransformerMixin):
+    def __init__(self, base_models, meta_model, n_folds=5):
+        self.base_models = base_models
+        self.meta_model = meta_model
+        self.n_folds = n_folds
+        
+    # 拟合模型
+    def fit(self, X, y):
+        self.base_models_ = [list() for x in self.base_models]
+        self.meta_model_ = clone(self.meta_model)
+        kfold = KFold(n_splits=self.n_folds, shuffle=True, random_state=156)
+        
+        # 训练模型，做出预测
+        out_of_fold_predictions = np.zeros((X.shape[0], len(self.base_models)))
+        for i, model in enumerate(self.base_models):
+            for train_index, holdout_index in kfold.split(X, y):
+                instance = clone(model)
+                self.base_models_[i].append(instance)
+                instance.fit(X[train_index], y[train_index])
+                y_pred = instance.predict(X[holdout_index])
+                out_of_fold_predictions[holdout_index, i] = y_pred
+        
+        self.meta_model_.fit(out_of_fold_predictions, y)
+        return self
+        
+    # 使用所有基本模型的测试结果作为元数据训练元模型
+    def predict(self, X):
+        meta_features = np.column_stack([np.column_stack([model.predict(X) for model in base_models]).mean(axis=1) for base_models in self.base_models_ ])
+        return self.meta_model_.predict(meta_features)
 
 
 if __name__ == "__main__":
@@ -231,3 +302,67 @@ if __name__ == "__main__":
     # 最后，重新划分训练集和测试集
     train = all_data[:ntrain]
     test = all_data[ntrain:]
+    
+    # 建模
+    # LASSO回归
+    lasso = make_pipeline(RobustScaler(), Lasso(alpha =0.0005, random_state=1))
+    # 塑性网络回归 Elastic Net Regression
+    ENet = make_pipeline(RobustScaler(), ElasticNet(alpha=0.0005, l1_ratio=.9, random_state=3))
+    # 核心岭回归 Kernel Ridge Regression
+    KRR = KernelRidge(alpha=0.6, kernel='polynomial', degree=2, coef0=2.5)
+    # Gradient Boosting Regression
+    # 使用huber来增强对异常值的健壮性
+    GBoost = GradientBoostingRegressor(n_estimators=3000, learning_rate=0.05, max_depth=4, max_features='sqrt', min_samples_leaf=15, min_samples_split=10, loss='huber', random_state =5)
+    # XGBoost
+    model_xgb = xgb.XGBRegressor(colsample_bytree=0.4603, gamma=0.0468, learning_rate=0.05, max_depth=3, min_child_weight=1.7817, n_estimators=2200, reg_alpha=0.4640, reg_lambda=0.8571, subsample=0.5213, silent=1, random_state =7, nthread = -1)
+    #LightGBM
+    model_lgb = lgb.LGBMRegressor(objective='regression',num_leaves=5, learning_rate=0.05, n_estimators=720, max_bin = 55, bagging_fraction = 0.8, bagging_freq = 5, feature_fraction = 0.2319, feature_fraction_seed=9, bagging_seed=9, min_data_in_leaf =6, min_sum_hessian_in_leaf = 11)
+    # 看一下这些模型的评分
+    models = [lasso, ENet, KRR, GBoost, model_xgb, model_lgb]
+    names = ["lasso", "ENet", "KRR", "GBoost", "model_xgb", "model_lgb"]
+    n = 0
+    for model in models:
+        score = rmsle_cv(model, train, y_train)
+        print("\n{} score: {:.4f} ({:.4f})\n".format(names[n], score.mean(), score.std())) 
+        n += 1
+        
+    # 求模型的平均值
+    averaged_models = AveragingModels(models = (lasso, ENet, KRR, GBoost, model_xgb, model_lgb))
+    score = rmsle_cv(averaged_models, train, y_train)
+    print("平均基本模型得分为: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
+    
+    # 更复杂的Stacking，增加元模型
+    stacked_averaged_models = StackingAveragedModels(base_models = (ENet, KRR, GBoost, model_xgb, model_lgb), meta_model = lasso)
+    score = rmsle_cv(stacked_averaged_models, train, y_train)
+    print("元模型得分为: {:.4f} ({:.4f})\n".format(score.mean(), score.std()))
+    
+    # 生成预测
+    # 先定义评估函数
+    def rmsle(y, y_pred):
+        return np.sqrt(mean_squared_error(y, y_pred))
+        
+    # StackedRegressor
+    stacked_averaged_models.fit(train.values, y_train)
+    stacked_train_pred = stacked_averaged_models.predict(train.values)
+    stacked_pred = np.expm1(stacked_averaged_models.predict(test.values))
+    print(rmsle(y_train, stacked_train_pred))
+    # XGBoost
+    model_xgb.fit(train, y_train)
+    xgb_train_pred = model_xgb.predict(train)
+    xgb_pred = np.expm1(model_xgb.predict(test))
+    print(rmsle(y_train, xgb_train_pred))
+    # LightGBM
+    model_lgb.fit(train, y_train)
+    lgb_train_pred = model_lgb.predict(train)
+    lgb_pred = np.expm1(model_lgb.predict(test.values))
+    print(rmsle(y_train, lgb_train_pred))
+    # 几个模型的加权评分
+    print('RMSLE score on train data:')
+    print(rmsle(y_train,stacked_train_pred*0.70 + xgb_train_pred*0.15 + lgb_train_pred*0.15 ))
+    # 形成预测
+    ensemble = stacked_pred*0.70 + xgb_pred*0.15 + lgb_pred*0.15
+    #生成提交文件
+    sub = pd.DataFrame()
+    sub['Id'] = test_ID
+    sub['SalePrice'] = ensemble
+    sub.to_csv('submission.csv',index=False)
