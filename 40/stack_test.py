@@ -6,7 +6,6 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from collections import Counter
 
 from sklearn.linear_model import LogisticRegression    #逻辑回归
 from sklearn.svm import SVC, LinearSVC                 #支持向量机
@@ -19,7 +18,9 @@ from sklearn.tree import DecisionTreeClassifier        #决策树算法
 from sklearn.model_selection import StratifiedKFold    #K折交叉切分
 from sklearn.model_selection import GridSearchCV       #网格搜索
 
-from sklearn.model_selection import cross_val_score, KFold
+from sklearn.model_selection import cross_val_score, KFold, train_test_split
+from vecstack import stacking
+from sklearn.metrics import accuracy_score
 
 
 # 对模型进行交叉验证
@@ -38,9 +39,6 @@ def ModelTest(Model, X_train, Y_train):
     
 # 用测试集检验模型预测的正确率
 def testModel(Model, X_train, Y_train,  X_test, Y_test):
-    print("模型预测正确率")
-    print(X_train)
-    print(Y_train)
     Model.fit(X_train, Y_train)
     # 用模型对测试集数据进行预测
     res = Model.predict(X_test)
@@ -53,42 +51,42 @@ def testModel(Model, X_train, Y_train,  X_test, Y_test):
     
     
 # 找到一个字符串数组中的众数
-def mostCommon(data):
-    count = {b'M':0, b'S':0, b'B':0, b'K':0}
-    for i in data:
-        count[i] +=1
-    return max(count, key = count.get)
-    
-    
+#def mostCommon(data):
+#    count = {b'M':0, b'S':0, b'B':0, b'K':0}
+#    for i in data:
+#        count[i] +=1
+#    return max(count, key = count.get)
+#    
+#    
 # 使用交叉验证的方法得到次级训练集
-def get_stacking(Model, x_train, y_train, x_test, n_folds=10):
-    """
-这个函数是stacking的核心，使用交叉验证的方法得到次级训练集x_train, y_train, x_test 的值应该为numpy里面的数组类型 numpy.ndarray .如果输入为pandas的DataFrame类型则会把报错"""
-    train_num, test_num = x_train.shape[0], x_test.shape[0]
-    second_level_train_set = np.zeros((train_num,), dtype = np.string_)
-    second_level_test_set = np.zeros((test_num,), dtype = np.string_)
-    test_nfolds_sets = np.zeros((test_num, n_folds), dtype = np.string_)
-    kf = KFold(n_splits=n_folds)
-    
-    for i,(train_index, test_index) in enumerate(kf.split(x_train)):
-        # print(x_train)
-        # input("按任意键继续")
-        x_tra, y_tra = x_train[train_index], y_train[train_index]
-        x_tst, y_tst =  x_train[test_index], y_train[test_index]
-        
-        print("stacking")
-        print(x_tra)
-        print(y_tra)
-        Model.fit(x_tra, y_tra)
-        
-        second_level_train_set[test_index] = Model.predict(x_tst)
-        test_nfolds_sets[:,i] = Model.predict(x_test)
-    # print(test_nfolds_sets)   
-    # 因为是字符串，求平均数失败，试试求众数
-    # second_level_test_set[:] = test_nfolds_sets.mean(axis=1)
-    for i in range(n_folds):
-        second_level_test_set[i] = mostCommon(test_nfolds_sets[:, i])
-    return second_level_train_set, second_level_test_set
+#def get_stacking(Model, x_train, y_train, x_test, n_folds=10):
+#    """
+#这个函数是stacking的核心，使用交叉验证的方法得到次级训练集x_train, y_train, x_test 的值应该为numpy里面的数组类型 numpy.ndarray .如果输入为pandas的DataFrame类型则会把报错"""
+#    train_num, test_num = x_train.shape[0], x_test.shape[0]
+#    second_level_train_set = np.zeros((train_num,), dtype = np.string_)
+#    second_level_test_set = np.zeros((test_num,), dtype = np.string_)
+#    test_nfolds_sets = np.zeros((test_num, n_folds), dtype = np.string_)
+#    kf = KFold(n_splits=n_folds)
+#    
+#    for i,(train_index, test_index) in enumerate(kf.split(x_train)):
+#        # print(x_train)
+#        # input("按任意键继续")
+#        x_tra, y_tra = x_train[train_index], y_train[train_index]
+#        x_tst, y_tst =  x_train[test_index], y_train[test_index]
+#        
+#        print("stacking")
+#        print(x_tra)
+#        print(y_tra)
+#        Model.fit(x_tra, y_tra)
+#        
+#        second_level_train_set[test_index] = Model.predict(x_tst)
+#        test_nfolds_sets[:,i] = Model.predict(x_test)
+#    # print(test_nfolds_sets)   
+#    # 因为是字符串，求平均数失败，试试求众数
+#    # second_level_test_set[:] = test_nfolds_sets.mean(axis=1)
+#    for i in range(n_folds):
+#        second_level_test_set[i] = mostCommon(test_nfolds_sets[:, i])
+#    return second_level_train_set, second_level_test_set
         
 
 if __name__ == "__main__":
@@ -204,18 +202,23 @@ if __name__ == "__main__":
     
     # 进行stacking
     # 用评分前五名的决策树，随机森林，KNN，朴素贝叶斯，支持向量机算法进行stacking。
-    Models = [treeModel, forestModel, knnModel, BYSModel, SVMModel]
-    train_sets = []
-    test_sets = []
-    for clf in Models:
-        train_set, test_set = get_stacking(clf, X_train.values, Y_train.values, X_test.values)
-        train_sets.append(train_set)
-        test_sets.append(test_set)
-    meta_train = np.concatenate([result_set.reshape(-1,1) for result_set in train_sets], axis=1)
-    meta_test = np.concatenate([y_test_set.reshape(-1,1) for y_test_set in test_sets], axis=1)
-    
-    # 使用决策树作为次级分类器
-    second_level_model = DecisionTreeClassifier()
+    models = [
+    DecisionTreeClassifier(),
+    RandomForestClassifier(),
+    KNeighborsClassifier(n_neighbors = 4),
+    GaussianNB(),
+    SVC()
+    ]
+    Y_train.replace({"Sue":1.0, "Mark":2.0, "Kate":3.0, "Bob":4.0}, inplace = True)
+    Y_test.replace({"Sue":1.0, "Mark":2.0, "Kate":3.0, "Bob":4.0}, inplace = True)
+    print(Y_train, Y_test)
+    x_train, x_test, y_train, y_test = train_test_split(X_train, Y_train, test_size=0.2, random_state=0)
+    S_train, S_test = stacking(models, x_train, y_train, x_test, regression=False, mode='oof_pred_bag', needs_proba=False, save_dir=None, metric=accuracy_score, n_folds=4, stratified=True, shuffle=True, random_state=0, verbose=2)
+    # 第二级，用梯度下降分类
+    model = SGDClassifier()
+    model = model.fit(S_train, y_train)
+    y_pred = model.predict(S_test)
+    print('Final prediction score: [%.8f]' % accuracy_score(y_test, y_pred))
         
     #分别测试
     DT_score = testModel(treeModel, X_train, Y_train,  X_test, Y_test)
@@ -223,7 +226,7 @@ if __name__ == "__main__":
     KNN_score = testModel(knnModel, X_train, Y_train,  X_test, Y_test)
     NB_score = testModel(BYSModel, X_train, Y_train,  X_test, Y_test)
     SVM_score = testModel(SVMModel, X_train, Y_train,  X_test, Y_test)
-    stacking_score = testModel(second_level_model, meta_train, Y_train,  meta_test, Y_test)
+    stacking_score = testModel(model, X_train, Y_train,  X_test, Y_test)
     print("Stacking结果")
     stacking_results = pd.DataFrame({
     '模型': ["决策树", "随机森林","KNN","朴素贝叶斯", "支持向量机", "Stacking"],
