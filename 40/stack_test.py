@@ -42,9 +42,12 @@ def testModel(Model, X_train, Y_train,  X_test, Y_test):
     Model.fit(X_train, Y_train)
     # 用模型对测试集数据进行预测
     res = Model.predict(X_test)
+    print(res, Y_test.values)
     n = 0.0
-    for i in range(len(Y_test)):
-        if res[i] == Y_test[i]:
+    Y_test_value = Y_test.values
+    for i in range(len(Y_test_value)):
+        # print(i, res[i], Y_test.iloc[i:1])
+        if res[i] == Y_test_value[i]:
             n += 1.0
     score = n/len(Y_test)
     return score
@@ -211,11 +214,10 @@ if __name__ == "__main__":
     ]
     Y_train.replace({"Sue":1.0, "Mark":2.0, "Kate":3.0, "Bob":4.0}, inplace = True)
     Y_test.replace({"Sue":1.0, "Mark":2.0, "Kate":3.0, "Bob":4.0}, inplace = True)
-    print(Y_train, Y_test)
     x_train, x_test, y_train, y_test = train_test_split(X_train, Y_train, test_size=0.2, random_state=0)
     S_train, S_test = stacking(models, x_train, y_train, x_test, regression=False, mode='oof_pred_bag', needs_proba=False, save_dir=None, metric=accuracy_score, n_folds=4, stratified=True, shuffle=True, random_state=0, verbose=2)
-    # 第二级，用梯度下降分类
-    model = SGDClassifier()
+    # 第二级，用逻辑回归
+    model = DecisionTreeClassifier()
     model = model.fit(S_train, y_train)
     y_pred = model.predict(S_test)
     print('Final prediction score: [%.8f]' % accuracy_score(y_test, y_pred))
@@ -226,7 +228,7 @@ if __name__ == "__main__":
     KNN_score = testModel(knnModel, X_train, Y_train,  X_test, Y_test)
     NB_score = testModel(BYSModel, X_train, Y_train,  X_test, Y_test)
     SVM_score = testModel(SVMModel, X_train, Y_train,  X_test, Y_test)
-    stacking_score = testModel(model, X_train, Y_train,  X_test, Y_test)
+    stacking_score = testModel(model, S_train, y_train,  S_test, y_test)
     print("Stacking结果")
     stacking_results = pd.DataFrame({
     '模型': ["决策树", "随机森林","KNN","朴素贝叶斯", "支持向量机", "Stacking"],
