@@ -81,6 +81,19 @@ class Tree:
                 q.append(pop_node.right)
                 res.append(pop_node.right.item)
         return res
+        
+        
+# 力扣230题，第k大的元素
+class TreeNode:
+    def __init__(self, x):
+        self.val = x
+        self.left = None
+        self.right = None
+    
+def kthSmallest(root, k):
+    def inorder(root):
+        return inorder(root.left) + [root.val] + inorder(root.right) if r else []
+    return inorder(root)[k-1]
             
 
 if __name__ == "__main__":
@@ -92,4 +105,7 @@ if __name__ == "__main__":
     print("后序遍历:", t.postorder(t.root))
     print("层次遍历:", t.traverse())
     
+    # 力扣230题
+    root = [5,3,6,2,4,None,None,1]
+    result = kthSmallest(root)
     
