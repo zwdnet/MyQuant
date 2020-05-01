@@ -57,6 +57,23 @@ def begin(list1, bag1, None_type):
     return mat1
     
     
+# 动态规划求序列的最长子序列
+def longest(nums):
+    dp = []
+    
+    n = len(nums)
+    max_ = 0
+    for i in range(n):
+        tmp = 1
+        for j in range(0, i):
+            if nums[j] < nums[i]:
+                tmp = max(tmp, 1+dp[j])
+        dp.append(tmp)
+        if max_ < tmp:
+            max_ = tmp
+    return max_
+        
+    
 if __name__ == "__main__":
     # 动态规划解决背包问题
     name = ['a','b','c','d','e']
@@ -67,3 +84,9 @@ if __name__ == "__main__":
     bag1 = Bag(10)
     s1 = begin(list1,bag1,None_type)
     print(s1)
+    
+    # 最大上升子序列问题
+    A = [1, 7, 2, 8, 3, 4]
+    l = longest(A)
+    print("最长子序列长度为:", l)
+    
