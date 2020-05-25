@@ -73,7 +73,7 @@ class MyStrategy(strategy.BacktestingStrategy):
 
     def onEnterOk(self, position):
         execInfo = position.getEntryOrder().getExecutionInfo()
-        # self.info("买入 %.2f" % (execInfo.getPrice()))
+        self.info("买入 %.2f" % (execInfo.getPrice()))
 
     def onEnterCanceled(self, position):
         self.__position = None
@@ -102,7 +102,7 @@ class MyStrategy(strategy.BacktestingStrategy):
         year = date.year
         month = date.month
         day = date.day
-        print(date, self.__high, self.__low, self.__close)
+        # print(date, self.__high, self.__low, self.__close)
         if self.__year != year or self.__month != month or self.__day != day:
             self.__year = year
             self.__month = month
@@ -115,13 +115,14 @@ class MyStrategy(strategy.BacktestingStrategy):
             if price < self.__low:
                 self.__low = price
             self.__close = price
-        share = brk.getShares(self.__instrument)
+        # 从这开始判断并执行策略
+        shares = brk.getShares(self.__instrument)
         price = bars[self.__instrument].getPrice()
-        tradeCode = self.__index.judge(self.__high, self.__low, self.__close, share, price)
+        tradeCode = self.__index.judge(self.__high, self.__low, self.__close, shares, price)
         if tradeCode == 1:
             # 全仓买入
             if shares != 0:
-                break
+                pass
             else: #这里全仓买入
                 cash = brk.getCash()
                 shares = cash/price
@@ -130,22 +131,11 @@ class MyStrategy(strategy.BacktestingStrategy):
                 self.__cost += brk.getCommission().calculate(brk, price, shares)
         elif tradeCode == 2:
             # 全仓卖出
-            if share == 0:
-                break
-            else: #这里全仓卖出
+            if shares == 0:
+                pass
+            elif not self.__position.exitActive(): #这里全仓卖出
                 self.__position.exitMarket()
                 self.__cost += brk.getCommission().calculate(brk, price, shares)
-        
-            
-        #shares = 100
-        #price = bars[self.__instrument].getPrice()
-        #if brk.getCash() < price*shares:
-        #    self.info("现金不足")
-        #    return
-        #self.__position = self.enterLong(self.__instrument, shares, True)
-        #self.__cost += brk.getCommission().calculate(brk, price, shares)
-        #self.info("可用现金%.2f 股价%.2f 持股数量%d 市值1:%.2f 市值2:%.2f 计算市值:%.2f 交易成本%.2f" % (brk.getCash(), price, brk.getShares(self.__instrument), brk.getEquity(), self.getResult(), (brk.getCash() + brk.getShares(self.__instrument)*price), self.__cost))
-        # x = input("按任意键继续")
 
 
 def analyzer(testResult):
@@ -204,7 +194,7 @@ def run_strategy(cash):
 #    instruments = ["000001"]
 #    feeds = tools.build_feed(instruments, 2016, 2018, "histdata")
     
-    instruments = ["601988"]
+    instruments = ["000989"]
     feeds = buildFeed(instruments[0],downloadData(instruments[0]))
     
     # 设置手续费, 万分之一
@@ -236,7 +226,7 @@ if __name__ == '__main__':
     register_matplotlib_converters()
     cash = 1000000
     result = run_strategy(cash)
-    # analyzer(result[1:5])
+    analyzer(result[1:5])
     
     res = result[0].getResult()
     print("期末总资产%.2f 期末收益率%.2f%%" % (res, 100.0*(res/cash-1.0)))
