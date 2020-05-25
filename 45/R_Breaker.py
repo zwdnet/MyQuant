@@ -95,20 +95,20 @@ class MyStrategy(strategy.BacktestingStrategy):
         self.__close = 0
 
     def onBars(self, bars):
-    	brk = self.getBroker()
-    	bar = bars[self.__instrument]
-    	# 先判断是否是新的交易日，是则更新指标
-    	date = bar.getDateTime()
-    	year = date.year
-    	month = date.month
-    	day = date.day
-    	print(date, self.__high, self.__low, self.__close)
-    	if self.__year != year or self.__month != month or self.__day != day:
-    	    self.__year = year
-    	    self.__month = month
-    	    self.__day = day
-    	    self.updateData()
-    	else:
+        brk = self.getBroker()
+        bar = bars[self.__instrument]
+        # 先判断是否是新的交易日，是则更新指标
+        date = bar.getDateTime()
+        year = date.year
+        month = date.month
+        day = date.day
+        print(date, self.__high, self.__low, self.__close)
+        if self.__year != year or self.__month != month or self.__day != day:
+            self.__year = year
+            self.__month = month
+            self.__day = day
+            self.updateData()
+        else:
             price = bars[self.__instrument].getPrice()
             if price > self.__high:
                 self.__high = price
@@ -137,67 +137,67 @@ class MyStrategy(strategy.BacktestingStrategy):
                 self.__cost += brk.getCommission().calculate(brk, price, shares)
         
             
-    	#shares = 100
-#    	price = bars[self.__instrument].getPrice()
-#    	if brk.getCash() < price*shares:
-#    		self.info("现金不足")
-#    		return
-#    	self.__position = self.enterLong(self.__instrument, shares, True)
-#    	self.__cost += brk.getCommission().calculate(brk, price, shares)
-    	# self.info("可用现金%.2f 股价%.2f 持股数量%d 市值1:%.2f 市值2:%.2f 计算市值:%.2f 交易成本%.2f" % (brk.getCash(), price, brk.getShares(self.__instrument), brk.getEquity(), self.getResult(), (brk.getCash() + brk.getShares(self.__instrument)*price), self.__cost))
-    	# x = input("按任意键继续")
+        #shares = 100
+        #price = bars[self.__instrument].getPrice()
+        #if brk.getCash() < price*shares:
+        #    self.info("现金不足")
+        #    return
+        #self.__position = self.enterLong(self.__instrument, shares, True)
+        #self.__cost += brk.getCommission().calculate(brk, price, shares)
+        #self.info("可用现金%.2f 股价%.2f 持股数量%d 市值1:%.2f 市值2:%.2f 计算市值:%.2f 交易成本%.2f" % (brk.getCash(), price, brk.getShares(self.__instrument), brk.getEquity(), self.getResult(), (brk.getCash() + brk.getShares(self.__instrument)*price), self.__cost))
+        # x = input("按任意键继续")
 
 
 def analyzer(testResult):
-	# 回测信息
-	print("年化收益率: %.2f %%" % (testResult[0].getCumulativeReturns()[-1] * 100))
-	print("夏普比率: %.2f" % (testResult[1].getSharpeRatio(0.05)))
-	print("最大回撤: %.2f %%" % (testResult[2].getMaxDrawDown() * 100))
-	print("最大回撤期间: %s" % (testResult[2].getLongestDrawDownDuration()))
-	
-	# 交易信息
-	td = testResult[3]
-	print("-----------------------")
-	print("总交易次数:%d" % (td.getCount()))
-	if td.getCount() > 0:
-		profits = td.getAll()
-		print("平均收益:%.2f" % (profits.mean()))
-		print("收益标准差:%.2f" % (profits.std()))
-		print("最大收益:%.2f" % (profits.max()))
-		print("最小收益:%.2f" % (profits.min()))
-		returns = td.getAllReturns()
-		print("平均收益率:%.2f%%" % (returns.mean() * 100))
-		print("收益率标准差:%.2f%%" % (returns.std() * 100))
-		print("最大收益率:%.2f%%" % (returns.max() * 100))
-		print("最小收益率:%.2f%%" % (returns.min() * 100))
-	
-	print("-----------------------")	
-	print("盈利的交易次数: %d" % (td.getProfitableCount()))
-	if td.getProfitableCount() > 0:
-		profits = td.getProfits()
-		print("平均收益:%.2f" % (profits.mean()))
-		print("收益标准差:%.2f" % (profits.std()))
-		print("最大收益:%.2f" % (profits.max()))
-		print("最小收益:%.2f" % (profits.min()))
-		returns = td.getPositiveReturns()
-		print("平均收益率:%.2f%%" % (returns.mean() * 100))
-		print("收益率标准差:%.2f%%" % (returns.std() * 100))
-		print("最大收益率:%.2f%%" % (returns.max() * 100))
-		print("最小收益率:%.2f%%" % (returns.min() * 100))
-		
-	print("-----------------------")
-	print("未盈利的交易次数: %d" % (td.getUnprofitableCount()))
-	if td.getUnprofitableCount() > 0:
-		losses = td.getLosses()
-		print("平均收益:%.2f" % (losses.mean()))
-		print("收益标准差:%.2f" % (losses.std()))
-		print("最大收益:%.2f" % (losses.max()))
-		print("最小收益:%.2f" % (losses.min()))
-		returns = td.getNegativeReturns()
-		print("平均收益率:%.2f%%" % (returns.mean() * 100))
-		print("收益率标准差:%.2f%%" % (returns.std() * 100))
-		print("最大收益率:%.2f%%" % (returns.max() * 100))
-		print("最小收益率:%.2f%%" % (returns.min() * 100))
+    # 回测信息
+    print("年化收益率: %.2f %%" % (testResult[0].getCumulativeReturns()[-1] * 100))
+    print("夏普比率: %.2f" % (testResult[1].getSharpeRatio(0.05)))
+    print("最大回撤: %.2f %%" % (testResult[2].getMaxDrawDown() * 100))
+    print("最大回撤期间: %s" % (testResult[2].getLongestDrawDownDuration()))
+    
+    # 交易信息
+    td = testResult[3]
+    print("-----------------------")
+    print("总交易次数:%d" % (td.getCount()))
+    if td.getCount() > 0:
+        profits = td.getAll()
+        print("平均收益:%.2f" % (profits.mean()))
+        print("收益标准差:%.2f" % (profits.std()))
+        print("最大收益:%.2f" % (profits.max()))
+        print("最小收益:%.2f" % (profits.min()))
+        returns = td.getAllReturns()
+        print("平均收益率:%.2f%%" % (returns.mean() * 100))
+        print("收益率标准差:%.2f%%" % (returns.std() * 100))
+        print("最大收益率:%.2f%%" % (returns.max() * 100))
+        print("最小收益率:%.2f%%" % (returns.min() * 100))
+    
+    print("-----------------------")    
+    print("盈利的交易次数: %d" % (td.getProfitableCount()))
+    if td.getProfitableCount() > 0:
+        profits = td.getProfits()
+        print("平均收益:%.2f" % (profits.mean()))
+        print("收益标准差:%.2f" % (profits.std()))
+        print("最大收益:%.2f" % (profits.max()))
+        print("最小收益:%.2f" % (profits.min()))
+        returns = td.getPositiveReturns()
+        print("平均收益率:%.2f%%" % (returns.mean() * 100))
+        print("收益率标准差:%.2f%%" % (returns.std() * 100))
+        print("最大收益率:%.2f%%" % (returns.max() * 100))
+        print("最小收益率:%.2f%%" % (returns.min() * 100))
+        
+    print("-----------------------")
+    print("未盈利的交易次数: %d" % (td.getUnprofitableCount()))
+    if td.getUnprofitableCount() > 0:
+        losses = td.getLosses()
+        print("平均收益:%.2f" % (losses.mean()))
+        print("收益标准差:%.2f" % (losses.std()))
+        print("最大收益:%.2f" % (losses.max()))
+        print("最小收益:%.2f" % (losses.min()))
+        returns = td.getNegativeReturns()
+        print("平均收益率:%.2f%%" % (returns.mean() * 100))
+        print("收益率标准差:%.2f%%" % (returns.std() * 100))
+        print("最大收益率:%.2f%%" % (returns.max() * 100))
+        print("最小收益率:%.2f%%" % (returns.min() * 100))
 
 
 def run_strategy(cash):
@@ -210,7 +210,7 @@ def run_strategy(cash):
     # 设置手续费, 万分之一
     broker_commision = broker.backtesting.TradePercentage(0.0001)
     brk = broker.backtesting.Broker(cash, feeds, broker_commision)
-	
+    
     myStrategy = MyStrategy(feeds, instruments[0], brk)
     retAnalyzer = returns.Returns()
     myStrategy.attachAnalyzer(retAnalyzer)
