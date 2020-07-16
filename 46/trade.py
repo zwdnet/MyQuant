@@ -27,6 +27,53 @@ def getData(code, start, end):
     return df
     
     
+# 建立数据源
+def createDataFeeds(code, name, start, end):
+
+    df_data = getData(code, start, end)
+    # print(df_300.info(), df_nas.info())
+    # 建立数据源
+    start_date = list(map(int, start.split("-")))
+    end_date = list(map(int, end.split("-")))
+    data = bt.feeds.PandasData(dataname = df_data, name = name, fromdate = datetime.datetime(start_date[0], start_date[1], start_date[2]), todate = datetime.datetime(end_date[0], end_date[1], end_date[2]))
+    return data
+    
+    
+# 建立回测模型
+def createBacktesting(commis = 0.0003, initcash = 0.01):
+    # 建立回测实例，加载数据，策略。
+    cerebro = bt.Cerebro()
+    cerebro.addstrategy(TradeStrategy)
+    # 添加回撤观察器
+    cerebro.addobserver(bt.observers.DrawDown)
+    # 设置手续费
+    cerebro.broker.setcommission(commission=commis)
+    # 设置初始资金为0.01
+    cerebro.broker.setcash(initcash)
+    # 添加分析对象
+    cerebro.addanalyzer(btay.SharpeRatio, _name = "sharpe", riskfreerate = 0.02)
+    cerebro.addanalyzer(btay.AnnualReturn, _name = "AR")
+    cerebro.addanalyzer(btay.DrawDown, _name = "DD")
+    cerebro.addanalyzer(btay.Returns, _name = "RE")
+    cerebro.addanalyzer(btay.TradeAnalyzer, _name = "TA")
+    return cerebro
+    
+    
+# 添加数据源
+def addData(cerebro, dataFeed, name):
+    cerebro.adddata(dataFeed, name = name)
+    
+# 输出结果
+def outputResult(cerebro):
+    cerebro.plot(numfigs = 2)
+    plt.savefig("result.png")
+    print("夏普比例:", results[0].analyzers.sharpe.get_analysis()["sharperatio"])
+    print("年化收益率:", results[0].analyzers.AR.get_analysis())
+    print("最大回撤:%.2f，最大回撤周期%d" % (results[0].analyzers.DD.get_analysis().max.drawdown, results[0].analyzers.DD.get_analysis().max.len))
+    print("总收益率:%.2f" % (results[0].analyzers.RE.get_analysis()["rtot"]))
+    results[0].analyzers.TA.print()
+    
+    
 # 交易策略
 class TradeStrategy(bt.Strategy):
     params = (
@@ -51,6 +98,21 @@ class TradeStrategy(bt.Strategy):
             dt = dt or self.datas[0].datetime.date(0)
             print('%s, %s' % (dt.isoformat(), txt))
             
+    # 输出交易过程
+    def __displayOrder(self, buy, order):
+        if buy:
+            self.log(
+                    '执行买入, 价格: %.2f, 成本: %.2f, 手续费 %.2f' %
+                    (order.executed.price,
+                     order.executed.value,
+                     order.executed.comm))
+        else:
+            self.log(
+                    '执行卖出, 价格: %.2f, 成本: %.2f, 手续费 %.2f' %
+                    (order.executed.price,
+                     order.executed.value,
+                     order.executed.comm))
+            
     def notify_order(self, order):
         # 有交易提交/被接受，啥也不做
         if order.status in [order.Submitted, order.Accepted]:
@@ -60,19 +122,9 @@ class TradeStrategy(bt.Strategy):
         # 如果钱不够，交易会被拒绝。
         if order.status in [order.Completed]:
             if order.isbuy():
-                self.log(
-                    '执行买入, 价格: %.2f, 成本: %.2f, 手续费 %.2f' %
-                    (order.executed.price,
-                     order.executed.value,
-                     order.executed.comm))
-                # self.buyprice = order.executed.price
-                # self.buycomm = order.executed.comm
+                self.__displayOrder(True, order)
             elif order.issell():
-                self.log(
-                    '执行卖出, 价格: %.2f, 成本: %.2f, 手续费 %.2f' %
-                    (order.executed.price,
-                     order.executed.value,
-                     order.executed.comm))
+                self.__displayOrder(False, order)
 
             self.bar_executed = len(self)
 
@@ -81,9 +133,16 @@ class TradeStrategy(bt.Strategy):
 
         self.order = None
         
-    def next(self):
-        if self.order:
-            return
+    # 交易的工具函数
+    def __doTrade(self, data, name, price, stock, commit, orderType):
+        if stock > 0 and name == data._name:
+            self.broker.add_cash(price*stock + commit)
+            self.order = self.buy(data = data, size = stock, price = price, exectype = orderType)
+        elif stock < 0 and name == data._name:
+            self.order = self.sell(data = data, size = -1*stock, price = price, exectype = orderType)
+            
+    # 具体交易逻辑，可以改的。
+    def doTrade(self):
         tradeData = pd.DataFrame()
         orderType = bt.Order.Market
         for data in self.datas:
@@ -97,58 +156,33 @@ class TradeStrategy(bt.Strategy):
                     stock = tradeBar.iloc[i].成交量 
                     commit = tradeBar.iloc[i].手续费
                     # 进行交易
-                    if stock > 0 and name == data._name:
-                        # print("测试a", date, name, price, stock, commit)
-                        self.broker.add_cash(price*stock + commit)
-                        # print(self.broker.get_cash())
-                        self.order = self.buy(data = data, size = stock, price = price, exectype = orderType)
-                    elif stock < 0 and name == data._name:
-                        # print("测试b", date, name, price, stock, commit)
-                        self.order = self.sell(data = data, size = -1*stock, price = price, exectype = orderType)
+                    self.__doTrade(data, name, price, stock, commit, orderType)
+            
+    def next(self):
+        if self.order:
+            return
+        self.doTrade()
+                        
     def stop(self):
         self.log("最大回撤:-%.2f%%" % self.stats.drawdown.maxdrawdown[-1], doprint=True)
                     
 
 
 if __name__ == "__main__":
+    # 加载数据，建立数据源
     start = "2018-01-01"
     end = "2020-07-05"
-    df_300 = getData("510300", start, end)
-    df_nas = getData("513100", start, end)
-    # print(df_300.info(), df_nas.info())
-    # 建立数据源
-    start_date = list(map(int, start.split("-")))
-    end_date = list(map(int, end.split("-")))
-    data300 = bt.feeds.PandasData(dataname = df_300, name = "300ETF", fromdate = datetime.datetime(start_date[0], start_date[1], start_date[2]), todate = datetime.datetime(end_date[0], end_date[1], end_date[2]))
-    dataNas = bt.feeds.PandasData(dataname = df_nas, name = "nasETF", fromdate = datetime.datetime(start_date[0], start_date[1], start_date[2]), todate = datetime.datetime(end_date[0], end_date[1], end_date[2]))
-    # 建立回测实例，加载数据，策略。
-    cerebro = bt.Cerebro()
-    cerebro.addstrategy(TradeStrategy)
-    cerebro.adddata(data300, name = "300ETF")
-    cerebro.adddata(dataNas, name = "nasETF")
-    # 添加回撤观察器
-    cerebro.addobserver(bt.observers.DrawDown)
-    # 设置手续费
-    cerebro.broker.setcommission(commission=0.0003)
-    # 设置初始资金为0.01
-    cerebro.broker.setcash(0.01)
-    print("初始资金:%.2f" % cerebro.broker.getvalue())
-    # 添加分析对象
-    cerebro.addanalyzer(btay.SharpeRatio, _name = "sharpe", riskfreerate = 0.02)
-    cerebro.addanalyzer(btay.AnnualReturn, _name = "AR")
-    cerebro.addanalyzer(btay.DrawDown, _name = "DD")
-    cerebro.addanalyzer(btay.Returns, _name = "RE")
-    cerebro.addanalyzer(btay.TradeAnalyzer, _name = "TA")
+    name300 = "300ETF"
+    nameNas = "nasETF"
+    data300 = createDataFeeds("510300", name300, start, end)
+    dataNas = createDataFeeds("513100", nameNas, start, end)
+    cerebro = createBacktesting()
+    addData(cerebro, data300, name300)
+    addData(cerebro, dataNas, nameNas)
     # 运行回测
+    print("初始资金:%.2f" % cerebro.broker.getvalue())
     results = cerebro.run()
-    # cerebro.broker.add_cash(-10000.0)
     print("期末资金:%.2f" % cerebro.broker.getvalue())
-    cerebro.plot(numfigs = 2)
-    plt.savefig("result.png")
-    print("夏普比例:", results[0].analyzers.sharpe.get_analysis()["sharperatio"])
-    print("年化收益率:", results[0].analyzers.AR.get_analysis())
-    print("最大回撤:%.2f，最大回撤周期%d" % (results[0].analyzers.DD.get_analysis().max.drawdown, results[0].analyzers.DD.get_analysis().max.len))
-    print("总收益率:%.2f" % (results[0].analyzers.RE.get_analysis()["rtot"]))
-    results[0].analyzers.TA.print()
+    outputResult(cerebro)
     
     
