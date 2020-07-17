@@ -3,77 +3,10 @@
 
 
 import backtrader as bt
-import backtrader.analyzers as btay
-import tushare as ts
-import os
+import backtest
 import pandas as pd
-import datetime
-import matplotlib.pyplot as plt
 
 
-# 获取数据
-def getData(code, start, end):
-    filename = code+".csv"
-    print("./" + filename)
-    # 已有数据文件，直接读取数据
-    if os.path.exists("./" + filename):
-        df = pd.read_csv(filename)
-    else: # 没有数据文件，用tushare下载
-        df = ts.get_k_data(code, autype = "qfq", start = start,  end = end)
-        df.to_csv(filename)
-    df.index = pd.to_datetime(df.date)
-    df['openinterest']=0
-    df=df[['open','high','low','close','volume','openinterest']]
-    return df
-    
-    
-# 建立数据源
-def createDataFeeds(code, name, start, end):
-
-    df_data = getData(code, start, end)
-    # print(df_300.info(), df_nas.info())
-    # 建立数据源
-    start_date = list(map(int, start.split("-")))
-    end_date = list(map(int, end.split("-")))
-    data = bt.feeds.PandasData(dataname = df_data, name = name, fromdate = datetime.datetime(start_date[0], start_date[1], start_date[2]), todate = datetime.datetime(end_date[0], end_date[1], end_date[2]))
-    return data
-    
-    
-# 建立回测模型
-def createBacktesting(commis = 0.0003, initcash = 0.01):
-    # 建立回测实例，加载数据，策略。
-    cerebro = bt.Cerebro()
-    cerebro.addstrategy(TradeStrategy)
-    # 添加回撤观察器
-    cerebro.addobserver(bt.observers.DrawDown)
-    # 设置手续费
-    cerebro.broker.setcommission(commission=commis)
-    # 设置初始资金为0.01
-    cerebro.broker.setcash(initcash)
-    # 添加分析对象
-    cerebro.addanalyzer(btay.SharpeRatio, _name = "sharpe", riskfreerate = 0.02)
-    cerebro.addanalyzer(btay.AnnualReturn, _name = "AR")
-    cerebro.addanalyzer(btay.DrawDown, _name = "DD")
-    cerebro.addanalyzer(btay.Returns, _name = "RE")
-    cerebro.addanalyzer(btay.TradeAnalyzer, _name = "TA")
-    return cerebro
-    
-    
-# 添加数据源
-def addData(cerebro, dataFeed, name):
-    cerebro.adddata(dataFeed, name = name)
-    
-# 输出结果
-def outputResult(cerebro):
-    cerebro.plot(numfigs = 2)
-    plt.savefig("result.png")
-    print("夏普比例:", results[0].analyzers.sharpe.get_analysis()["sharperatio"])
-    print("年化收益率:", results[0].analyzers.AR.get_analysis())
-    print("最大回撤:%.2f，最大回撤周期%d" % (results[0].analyzers.DD.get_analysis().max.drawdown, results[0].analyzers.DD.get_analysis().max.len))
-    print("总收益率:%.2f" % (results[0].analyzers.RE.get_analysis()["rtot"]))
-    results[0].analyzers.TA.print()
-    
-    
 # 交易策略
 class TradeStrategy(bt.Strategy):
     params = (
@@ -172,17 +105,8 @@ if __name__ == "__main__":
     # 加载数据，建立数据源
     start = "2018-01-01"
     end = "2020-07-05"
-    name300 = "300ETF"
-    nameNas = "nasETF"
-    data300 = createDataFeeds("510300", name300, start, end)
-    dataNas = createDataFeeds("513100", nameNas, start, end)
-    cerebro = createBacktesting()
-    addData(cerebro, data300, name300)
-    addData(cerebro, dataNas, nameNas)
-    # 运行回测
-    print("初始资金:%.2f" % cerebro.broker.getvalue())
-    results = cerebro.run()
-    print("期末资金:%.2f" % cerebro.broker.getvalue())
-    outputResult(cerebro)
-    
-    
+    name = ["300ETF", "nasETF"]
+    code = ["510300", "513100"]
+    backtest = backtest.BackTest(TradeStrategy, start, end, code, name)
+    backtest.run()
+    backtest.output()
