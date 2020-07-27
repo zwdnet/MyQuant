@@ -5,6 +5,7 @@
 import backtrader as bt
 import backtest
 import math
+import pandas as pd
 
 
 # 双均线策略类
@@ -35,15 +36,40 @@ class SmaCross(bt.Strategy):
         elif self.crossover < 0:
             self.order = self.close()
             # self.log("卖出")
+            
+            
+# 基准策略类，用于计算α，β等回测指标
+# 采用第一天全仓买入并持有的策略
+class Benchmark(bt.Strategy):
+    def __init__(self):
+        self.order = None
+        self.bBuy = False
+        self.dataclose = self.datas[0].close
+        
+    def next(self):
+        if self.bBuy == True:
+            return
+        else:
+            cash = self.broker.get_cash()
+            stock = math.ceil(cash/self.dataclose/100)*100 - 100
+            self.order = self.buy(size = stock, price = self.datas[0].close)
+            self.bBuy = True
+            
+    def stop(self):
+        self.order = self.close()
 
 
 if __name__ == "__main__":
     start = "2018-01-01"
     end = "2020-07-05"
-    name = ["300etf"]
-    code = ["510300"]
+    name = ["nasetf"]
+    code = ["513100"]
     backtest = backtest.BackTest(SmaCross, start, end, code, name, 10000)
     result = backtest.run()
     # backtest.output()
     print(result)
+#    bench = backtest.BackTest(Benchmark, start, end, code, name, 10000)
+#    benchtest = backtest.BackTest(Benchmark, start, end, code, "Benchmark", 10000)
+#    result, returns = bench.run()
+#    print(result)
     

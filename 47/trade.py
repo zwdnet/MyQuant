@@ -61,8 +61,13 @@ class TradeStrategy(bt.Strategy):
 
             self.bar_executed = len(self)
 
-        elif order.status in [order.Canceled, order.Margin, order.Rejected]:
-            self.log('交易取消/被拒绝。')
+        elif order.status in [order.Canceled]:
+            self.log('交易取消。')
+            # self.log(order)
+        elif order.status in [order.Margin]:
+            self.log("交易Margin")
+        elif order.status in [order.Rejected]:
+            self.log("交易被拒绝。")
 
         self.order = None
         
@@ -70,6 +75,7 @@ class TradeStrategy(bt.Strategy):
     def __doTrade(self, data, name, price, stock, commit, orderType):
         if stock > 0 and name == data._name:
             self.broker.add_cash(price*stock + commit)
+            print("测试a", price*stock+commit, self.broker.get_cash(), self.broker.get_value(), self.broker.get_fundshares(), self.broker.get_fundvalue())
             self.order = self.buy(data = data, size = stock, price = price, exectype = orderType)
         elif stock < 0 and name == data._name:
             self.order = self.sell(data = data, size = -1*stock, price = price, exectype = orderType)
@@ -107,6 +113,11 @@ if __name__ == "__main__":
     end = "2020-07-05"
     name = ["300ETF", "nasETF"]
     code = ["510300", "513100"]
-    backtest = backtest.BackTest(TradeStrategy, start, end, code, name)
-    backtest.run()
-    backtest.output()
+    backtest = backtest.BackTest(TradeStrategy, start, end, code, name, cash = 1000)
+    results = backtest.run()
+    # backtest.output()
+    print(results)
+    #returns = backtest.getReturns()
+#    print(returns)
+#    returns[0].to_csv("1.csv")
+#    returns[1].to_csv("2.csv")
