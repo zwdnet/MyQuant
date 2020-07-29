@@ -75,7 +75,7 @@ class TradeStrategy(bt.Strategy):
     def __doTrade(self, data, name, price, stock, commit, orderType):
         if stock > 0 and name == data._name:
             self.broker.add_cash(price*stock + commit)
-            print("测试a", price*stock+commit, self.broker.get_cash(), self.broker.get_value(), self.broker.get_fundshares(), self.broker.get_fundvalue())
+            # print("测试a", price*stock+commit, self.broker.get_cash(), self.broker.get_value(), self.broker.get_fundshares(), self.broker.get_fundvalue())
             self.order = self.buy(data = data, size = stock, price = price, exectype = orderType)
         elif stock < 0 and name == data._name:
             self.order = self.sell(data = data, size = -1*stock, price = price, exectype = orderType)
@@ -103,6 +103,7 @@ class TradeStrategy(bt.Strategy):
         self.doTrade()
                         
     def stop(self):
+        self.order = self.close()
         self.log("最大回撤:-%.2f%%" % self.stats.drawdown.maxdrawdown[-1], doprint=True)
                     
 

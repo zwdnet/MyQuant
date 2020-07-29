@@ -37,6 +37,7 @@ class BackTest:
         self.__returns = pd.Series()
         self.__benchmarkCode = benchmarkCode
         self.__benchReturns = pd.Series()
+        self.__benchFeed = None
         self.__bDraw = bDraw
         self.__start_date = None
         self.__end_date = None
@@ -46,13 +47,22 @@ class BackTest:
     def init(self):
         self.__cerebro = bt.Cerebro()
         self.__cerebro.addstrategy(self.__strategy)
-        self.settingCerebro()
         self.createDataFeeds()
+        self.settingCerebro()
+        
+    # 进行参数优化
+    def _optStrategy(self, *args, **kwargs):
+        self.__cerebro = bt.Cerebro(maxcpus = 1)
+        self.__cerebro.optstrategy(self.__strategy, *args, **kwargs)
+        self.createDataFeeds()
+        self.settingCerebro()
+
         
     # 设置cerebro
     def settingCerebro(self):
         # 添加回撤观察器
         self.__cerebro.addobserver(bt.observers.DrawDown)
+        self.__cerebro.addobserver(bt.observers.Benchmark, data = self.__benchFeed, timeframe = bt.TimeFrame.NoTimeFrame)
         # 设置手续费
         self.__cerebro.broker.setcommission(commission=self.__commission)
         # 设置初始资金
@@ -64,18 +74,27 @@ class BackTest:
         self.__cerebro.addanalyzer(btay.Returns, _name = "RE")
         self.__cerebro.addanalyzer(btay.TradeAnalyzer, _name = "TA")
         self.__cerebro.addanalyzer(btay.TimeReturn, _name = "TR")
+        self.__cerebro.addanalyzer(btay.TimeReturn, _name = "TR_Bench", data = self.__benchFeed)
         self.__cerebro.addanalyzer(btay.SQN, _name = "SQN")
         
     # 建立数据源
     def createDataFeeds(self):
+        # 建立回测数据源
         for i in range(len(self.__code)):
-            df_data = self._getData(self.__code[i])
-            start_date = list(map(int, self.__start.split("-")))
-            end_date = list(map(int, self.__end.split("-")))
-            self.__start_date = datetime.datetime(start_date[0], start_date[1], start_date[2])
-            self.__end_date = datetime.datetime(end_date[0], end_date[1], end_date[2])
-            dataFeed = bt.feeds.PandasData(dataname = df_data, name = self.__name[i], fromdate = datetime.datetime(start_date[0], start_date[1], start_date[2]), todate = datetime.datetime(end_date[0], end_date[1], end_date[2]))
+            dataFeed = self._createDataFeeds(self.__code[i], self.__name[i])
             self.__cerebro.adddata(dataFeed, name = self.__name[i])
+        self.__benchFeed = self._createDataFeeds(self.__benchmarkCode, "benchMark")
+        self.__cerebro.adddata(self.__benchFeed, name = "benchMark")
+            
+    # 建立数据源的具体过程
+    def _createDataFeeds(self, code, name):
+        df_data = self._getData(code)
+        start_date = list(map(int, self.__start.split("-")))
+        end_date = list(map(int, self.__end.split("-")))
+        self.__start_date = datetime.datetime(start_date[0], start_date[1], start_date[2])
+        self.__end_date = datetime.datetime(end_date[0], end_date[1], end_date[2])
+        dataFeed = bt.feeds.PandasData(dataname = df_data, name = name, fromdate = datetime.datetime(start_date[0], start_date[1], start_date[2]), todate = datetime.datetime(end_date[0], end_date[1], end_date[2]))
+        return dataFeed
             
     # 获取账户总价值
     def getValue(self):
@@ -92,17 +111,39 @@ class BackTest:
             self.__backtestResult["交易次数"] = total_trade_num
             self.__backtestResult["胜率"] = win_num/total_trade_num
             self.__backtestResult["败率"] = lost_num/total_trade_num
-        
+            
+    # 根据SQN值对策略做出评估
+    # 按照backtrader文档写的
+    def _judgeBySQN(self):
+        sqn = self.__backtestResult["SQN"]
+        result = None
+        if sqn >= 1.6 and sqn <= 1.9:
+            result = "低于平均"
+        elif sqn > 1.9 and sqn <= 2.4:
+            result = "平均水平"
+        elif sqn > 2.4 and sqn <= 2.9:
+            result = "良好"
+        elif sqn > 2.9 and sqn <= 5.0:
+            result = "优秀"
+        elif sqn > 5.0 and sqn <= 6.9:
+            result = "卓越"
+        elif sqn > 6.9:
+            result = "大神?"
+        else:
+            result = "很差"
+        self.__backtestResult["策略评价(根据SQN)"] = result
         
     # 计算并保存回测结果指标
     def _Result(self):
         self.__backtestResult["账户总额"] = self.getValue()
         self.__backtestResult["总收益率"] = self.__results[0].analyzers.RE.get_analysis()["rtot"]
         self.__backtestResult["年化收益率"] = self.__results[0].analyzers.RE.get_analysis()["rnorm"]
+        # self.__backtestResult["交易成本"] = self.__cerebro.strats[0].getCommission()
         self.__backtestResult["夏普比率"] = self.__results[0].analyzers.sharpe.get_analysis()["sharperatio"]
         self.__backtestResult["最大回撤"] = self.__results[0].analyzers.DD.get_analysis().max.drawdown
         self.__backtestResult["最大回撤期间"] = self.__results[0].analyzers.DD.get_analysis().max.len
         self.__backtestResult["SQN"] = self.__results[0].analyzers.SQN.get_analysis()["sqn"]
+        self._judgeBySQN()
 
         # 计算胜率信息
         self._winInfo()
@@ -115,7 +156,7 @@ class BackTest:
     def getReturns(self):
         return self.__returns, self.__benchReturns
         
-    # 获取收益率序列
+    # 计算收益率序列
     def _timeReturns(self):
         self.__returns = pd.Series(self.__results[0].analyzers.TR.get_analysis())
         
@@ -134,16 +175,22 @@ class BackTest:
         
     # 执行回测
     def run(self):
-        print("初始资金:%.2f" % self.getValue())
+        self.__backtestResult["期初账户总值"] = self.getValue()
         self.__results = self.__cerebro.run()
-        print("期末资金:%.2f" % self.getValue())
+        self.__backtestResult["期末账户总值"] = self.getValue()
         self._Result()
         if self.__bDraw == True:
             self._drawResult()
         self._timeReturns()
-        self.__benchReturns = self._runBenchmark()
+        self.__benchReturns = self._getBenchmarkReturns()
         self._riskAnaly()
         return self.getResult()
+        
+    # 执行参数优化的回测
+    def optRun(self, *args, **kwargs):
+        self._optStrategy(*args, **kwargs)
+        self.__cerebro.run()
+        self.init()
         
     # 回测结果绘图
     def _drawResult(self):
@@ -174,73 +221,8 @@ class BackTest:
         return df
         
     # 运行基准策略，获取基准收益值
-    def _runBenchmark(self):
-        benchCerebro = bt.Cerebro()
-        benchCerebro.addstrategy(Benchmark)
-        # 设置手续费
-        self.__cerebro.broker.setcommission(commission=self.__commission)
-        # 设置初始资金
-        self.__cerebro.broker.setcash(self.__initcash)
-        # 添加收益分析器
-        benchCerebro.addanalyzer(btay.TimeReturn, _name = "TR")
-        # 获取数据并添加
-        df_data = self._getData(self.__benchmarkCode)
-        start_date = list(map(int, self.__start.split("-")))
-        end_date = list(map(int, self.__end.split("-")))
-        dataFeed = bt.feeds.PandasData(dataname = df_data, name = "BenchMark", fromdate = datetime.datetime(start_date[0], start_date[1], start_date[2]), todate = datetime.datetime(end_date[0], end_date[1], end_date[2]))
-        benchCerebro.adddata(dataFeed, name = "BenchMark")
-        # 执行回测
-        results = benchCerebro.run()
-        # 获取收益率序列
-        return pd.Series(results[0].analyzers.TR.get_analysis())
-        
-        
-# 基准策略类，用于计算α，β等回测指标
-# 采用第一天全仓买入并持有的策略
-class Benchmark(bt.Strategy):
-    def __init__(self):
-        self.order = None
-        self.bBuy = False
-        self.dataclose = self.datas[0].close
-        
-    def next(self):
-        if self.bBuy == True:
-            return
-        else:
-            cash = self.broker.get_cash()
-            stock = math.ceil(cash/self.dataclose/100)*100 - 100
-            self.order = self.buy(size = stock, price = self.datas[0].close)
-            self.bBuy = True
-            
-    def stop(self):
-        self.order = self.close()
-        
-        
-# 计算年化夏普值，参考backtrader的文档
-class SharpeRatio(Analyzer):
-    params = (("timeframe", TimeFrame.Years), ("riskfreerate", 0.02))
-    
-    def __init__(self):
-        super(SharpeRatio, self).__init__()
-        self.anret = AnnualReturn()
-        
-    def start(self):
-        pass
-        
-    def next(self):
-        pass
-        
-    def stop(self):
-        retfree = [self.p.riskfreerate] * len(self.anret.rets)
-        retavg = average(list(map(operator.sub, self.anret.rets, retfree)))
-        retdev = standarddev(self.anret.rets)
-        if retdev == 0.0:
-            self.ratio = 0.0
-        else:
-            self.ratio = retavg/retdev
-        
-    def get_analysis(self):
-        return dict(sharperatio = self.ratio)
+    def _getBenchmarkReturns(self):
+        return pd.Series(self.__results[0].analyzers.TR_Bench.get_analysis())
         
 
 # 用empyrical库计算风险指标
