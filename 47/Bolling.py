@@ -43,9 +43,7 @@ class Bolling(bt.Strategy):
             return
 
         self.order = None
-        
-    def stop(self):
-        self.log("周期%d期末账户总值%.2f" % (self.p.period, self.broker.getvalue()))
+
 
 if __name__ == "__main__":
     start = "2018-01-01"
@@ -56,5 +54,6 @@ if __name__ == "__main__":
     result = backtest.run()
     # backtest.output()
     print(result)
-    backtest.optRun(period = range(5, 50))
+    result = backtest.optRun(period = range(6, 30))
+    print(result)
     

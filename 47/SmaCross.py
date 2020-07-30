@@ -6,13 +6,14 @@ import backtrader as bt
 import backtest
 import math
 import pandas as pd
+import matplotlib.pyplot as plt
 
 
 # 双均线策略类
 class SmaCross(bt.Strategy):
     params = dict(
             pfast = 5,
-            pslow = 30
+            pslow = 22
     )
     
     def log(self, txt, dt=None):
@@ -68,8 +69,10 @@ if __name__ == "__main__":
     result = backtest.run()
     # backtest.output()
     print(result)
-#    bench = backtest.BackTest(Benchmark, start, end, code, name, 10000)
-#    benchtest = backtest.BackTest(Benchmark, start, end, code, "Benchmark", 10000)
-#    result, returns = bench.run()
-#    print(result)
+    result = backtest.optRun(pslow = range(6, 30))
+    print(result.describe())
+    plt.figure()
+    plt.plot(result.年化收益率)
+    plt.savefig("SmaCross参数优化.png")
+
     

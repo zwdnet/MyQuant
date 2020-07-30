@@ -23,7 +23,7 @@ import operator
 
 # 回测类
 class BackTest:
-    def __init__(self, strategy, start, end, code, name, cash = 0.01, benchmarkCode = "510300", bDraw = True):
+    def __init__(self, strategy, start, end, code, name, cash = 0.01, commission = 0.0003, benchmarkCode = "510300", bDraw = True):
         self.__cerebro = None
         self.__strategy = strategy
         self.__start = start
@@ -31,7 +31,7 @@ class BackTest:
         self.__code = code
         self.__name = name
         self.__result = None
-        self.__commission = 0.0003
+        self.__commission = commission
         self.__initcash = cash
         self.__backtestResult = pd.Series()
         self.__returns = pd.Series()
@@ -62,6 +62,7 @@ class BackTest:
     def settingCerebro(self):
         # 添加回撤观察器
         self.__cerebro.addobserver(bt.observers.DrawDown)
+        # 添加基准观察器
         self.__cerebro.addobserver(bt.observers.Benchmark, data = self.__benchFeed, timeframe = bt.TimeFrame.NoTimeFrame)
         # 设置手续费
         self.__cerebro.broker.setcommission(commission=self.__commission)
@@ -101,21 +102,19 @@ class BackTest:
         return self.__cerebro.broker.getvalue()
         
     # 计算胜率信息
-    def _winInfo(self):
-        trade_info = self.__results[0].analyzers.TA.get_analysis()
+    def _winInfo(self, trade_info, result):
         total_trade_num = trade_info["total"]["total"]
         # print(total_trade_num)
         if total_trade_num > 1:
             win_num = trade_info["won"]["total"]
             lost_num = trade_info["lost"]["total"]
-            self.__backtestResult["交易次数"] = total_trade_num
-            self.__backtestResult["胜率"] = win_num/total_trade_num
-            self.__backtestResult["败率"] = lost_num/total_trade_num
+            result["交易次数"] = total_trade_num
+            result["胜率"] = win_num/total_trade_num
+            result["败率"] = lost_num/total_trade_num
             
     # 根据SQN值对策略做出评估
     # 按照backtrader文档写的
-    def _judgeBySQN(self):
-        sqn = self.__backtestResult["SQN"]
+    def _judgeBySQN(self, sqn):
         result = None
         if sqn >= 1.6 and sqn <= 1.9:
             result = "低于平均"
@@ -132,6 +131,7 @@ class BackTest:
         else:
             result = "很差"
         self.__backtestResult["策略评价(根据SQN)"] = result
+        return result
         
     # 计算并保存回测结果指标
     def _Result(self):
@@ -143,10 +143,45 @@ class BackTest:
         self.__backtestResult["最大回撤"] = self.__results[0].analyzers.DD.get_analysis().max.drawdown
         self.__backtestResult["最大回撤期间"] = self.__results[0].analyzers.DD.get_analysis().max.len
         self.__backtestResult["SQN"] = self.__results[0].analyzers.SQN.get_analysis()["sqn"]
-        self._judgeBySQN()
+        self._judgeBySQN(self.__backtestResult["SQN"])
 
         # 计算胜率信息
-        self._winInfo()
+        trade_info = self.__results[0].analyzers.TA.get_analysis()
+        self._winInfo(trade_info, self.__backtestResult)
+        
+    # 取得优化参数时的指标结果
+    def _getOptAnalysis(self, result):
+        temp = dict()
+        temp["总收益率"] = result[0].analyzers.RE.get_analysis()["rtot"]
+        temp["年化收益率"] = result[0].analyzers.RE.get_analysis()["rnorm"]
+        temp["夏普比率"] = result[0].analyzers.sharpe.get_analysis()["sharperatio"]
+        temp["最大回撤"] = result[0].analyzers.DD.get_analysis().max.drawdown
+        temp["最大回撤期间"] = result[0].analyzers.DD.get_analysis().max.len
+        sqn = result[0].analyzers.SQN.get_analysis()["sqn"]
+        temp["SQN"] = sqn
+        temp["策略评价(根据SQN)"] = self._judgeBySQN(sqn)
+        trade_info = self.__results[0].analyzers.TA.get_analysis()
+        self._winInfo(trade_info, temp)
+        return temp
+        
+    # 在优化参数时计算并保存回测结果
+    def _optResult(self, results, **kwargs):
+        testResults = pd.DataFrame()
+        params = []
+        for k, v in kwargs.items():
+            for t in v:
+                 params.append(t)
+        i = 0
+        for result in results:
+            temp = self._getOptAnalysis(result)
+            temp["参数值"] = params[i]
+            i += 1
+            returns = self._timeReturns(result)
+            benchReturns = self._getBenchmarkReturns(result)
+            self._riskAnaly(returns, benchReturns, temp)
+            testResults = testResults.append(temp, ignore_index=True)
+        testResults.set_index(["参数值"], inplace = True)
+        return testResults
         
     # 获取回测指标
     def getResult(self):
@@ -157,21 +192,25 @@ class BackTest:
         return self.__returns, self.__benchReturns
         
     # 计算收益率序列
-    def _timeReturns(self):
-        self.__returns = pd.Series(self.__results[0].analyzers.TR.get_analysis())
+    def _timeReturns(self, result):
+        return pd.Series(result[0].analyzers.TR.get_analysis())
+        
+    # 运行基准策略，获取基准收益值
+    def _getBenchmarkReturns(self, result):
+        return pd.Series(result[0].analyzers.TR_Bench.get_analysis())
         
     # 分析策略的风险指标
-    def _riskAnaly(self):
-        risk = riskAnalyzer(self.__returns, self.__benchReturns)
+    def _riskAnaly(self, returns, benchReturns, results):
+        risk = riskAnalyzer(returns, benchReturns)
         result = risk.run()
-        self.__backtestResult["阿尔法"] = result["阿尔法"]
-        self.__backtestResult["贝塔"] = result["贝塔"]
-        self.__backtestResult["信息比例"] = result["信息比例"]
-        self.__backtestResult["策略波动率"] = result["策略波动率"]
-        self.__backtestResult["欧米伽"] = result["欧米伽"]
+        results["阿尔法"] = result["阿尔法"]
+        results["贝塔"] = result["贝塔"]
+        results["信息比例"] = result["信息比例"]
+        results["策略波动率"] = result["策略波动率"]
+        results["欧米伽"] = result["欧米伽"]
         # self.__backtestResult["夏普值"] = result["夏普值"]
-        self.__backtestResult["sortino"] = result["sortino"]
-        self.__backtestResult["calmar"] = result["calmar"]
+        results["sortino"] = result["sortino"]
+        results["calmar"] = result["calmar"]
         
     # 执行回测
     def run(self):
@@ -181,16 +220,18 @@ class BackTest:
         self._Result()
         if self.__bDraw == True:
             self._drawResult()
-        self._timeReturns()
-        self.__benchReturns = self._getBenchmarkReturns()
-        self._riskAnaly()
+        self.__returns = self._timeReturns(self.__results)
+        self.__benchReturns = self._getBenchmarkReturns(self.__results)
+        self._riskAnaly(self.__returns, self.__benchReturns, self.__backtestResult)
         return self.getResult()
         
     # 执行参数优化的回测
     def optRun(self, *args, **kwargs):
         self._optStrategy(*args, **kwargs)
-        self.__cerebro.run()
+        results = self.__cerebro.run()
+        testResults = self._optResult(results, **kwargs)
         self.init()
+        return testResults
         
     # 回测结果绘图
     def _drawResult(self):
@@ -219,10 +260,6 @@ class BackTest:
         df['openinterest']=0
         df=df[['open','high','low','close','volume','openinterest']]
         return df
-        
-    # 运行基准策略，获取基准收益值
-    def _getBenchmarkReturns(self):
-        return pd.Series(self.__results[0].analyzers.TR_Bench.get_analysis())
         
 
 # 用empyrical库计算风险指标
