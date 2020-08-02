@@ -41,25 +41,68 @@ class BackTest:
         self.__bDraw = bDraw
         self.__start_date = None
         self.__end_date = None
-        self.init()
+        self._init()
         
-    # 真正进行初始化的地方
-    def init(self):
-        self.__cerebro = bt.Cerebro()
-        self.__cerebro.addstrategy(self.__strategy)
-        self.createDataFeeds()
-        self.settingCerebro()
+    # 执行回测
+    def run(self):
+        self.__backtestResult["期初账户总值"] = self.getValue()
+        self.__results = self.__cerebro.run()
+        self.__backtestResult["期末账户总值"] = self.getValue()
+        self._Result()
+        if self.__bDraw == True:
+            self._drawResult()
+        self.__returns = self._timeReturns(self.__results)
+        self.__benchReturns = self._getBenchmarkReturns(self.__results)
+        self._riskAnaly(self.__returns, self.__benchReturns, self.__backtestResult)
+        return self.getResult()
         
+    # 获取账户总价值
+    def getValue(self):
+        return self.__cerebro.broker.getvalue()
+        
+    # 获取回测指标
+    def getResult(self):
+        return self.__backtestResult
+        
+    # 获取策略及基准策略收益率的序列
+    def getReturns(self):
+        return self.__returns, self.__benchReturns
+        
+    # 执行参数优化的回测
+    def optRun(self, *args, **kwargs):
+        self._optStrategy(*args, **kwargs)
+        results = self.__cerebro.run()
+        if len(kwargs) == 1:
+            testResults = self._optResult(results, **kwargs)
+        elif len(kwargs) > 1:
+            testResults = self._optResultMore(results, **kwargs)
+        self._init()
+        return testResults
+        
+    # 输出回测结果
+    def output(self):
+        print("夏普比例:", self.__results[0].analyzers.sharpe.get_analysis()["sharperatio"])
+        print("年化收益率:", self.__results[0].analyzers.AR.get_analysis())
+        print("最大回撤:%.2f，最大回撤周期%d" % (self.__results[0].analyzers.DD.get_analysis().max.drawdown, self.__results[0].analyzers.DD.get_analysis().max.len))
+        print("总收益率:%.2f" % (self.__results[0].analyzers.RE.get_analysis()["rtot"]))
+        self.__results[0].analyzers.TA.pprint()
+            
     # 进行参数优化
     def _optStrategy(self, *args, **kwargs):
         self.__cerebro = bt.Cerebro(maxcpus = 1)
         self.__cerebro.optstrategy(self.__strategy, *args, **kwargs)
-        self.createDataFeeds()
-        self.settingCerebro()
+        self._createDataFeeds()
+        self._settingCerebro()
 
+    # 真正进行初始化的地方
+    def _init(self):
+        self.__cerebro = bt.Cerebro()
+        self.__cerebro.addstrategy(self.__strategy)
+        self._createDataFeeds()
+        self._settingCerebro()
         
     # 设置cerebro
-    def settingCerebro(self):
+    def _settingCerebro(self):
         # 添加回撤观察器
         self.__cerebro.addobserver(bt.observers.DrawDown)
         # 添加基准观察器
@@ -79,16 +122,16 @@ class BackTest:
         self.__cerebro.addanalyzer(btay.SQN, _name = "SQN")
         
     # 建立数据源
-    def createDataFeeds(self):
+    def _createDataFeeds(self):
         # 建立回测数据源
         for i in range(len(self.__code)):
-            dataFeed = self._createDataFeeds(self.__code[i], self.__name[i])
+            dataFeed = self._createDataFeedsProcess(self.__code[i], self.__name[i])
             self.__cerebro.adddata(dataFeed, name = self.__name[i])
-        self.__benchFeed = self._createDataFeeds(self.__benchmarkCode, "benchMark")
+        self.__benchFeed = self._createDataFeedsProcess(self.__benchmarkCode, "benchMark")
         self.__cerebro.adddata(self.__benchFeed, name = "benchMark")
             
     # 建立数据源的具体过程
-    def _createDataFeeds(self, code, name):
+    def _createDataFeedsProcess(self, code, name):
         df_data = self._getData(code)
         start_date = list(map(int, self.__start.split("-")))
         end_date = list(map(int, self.__end.split("-")))
@@ -97,10 +140,6 @@ class BackTest:
         dataFeed = bt.feeds.PandasData(dataname = df_data, name = name, fromdate = datetime.datetime(start_date[0], start_date[1], start_date[2]), todate = datetime.datetime(end_date[0], end_date[1], end_date[2]))
         return dataFeed
             
-    # 获取账户总价值
-    def getValue(self):
-        return self.__cerebro.broker.getvalue()
-        
     # 计算胜率信息
     def _winInfo(self, trade_info, result):
         total_trade_num = trade_info["total"]["total"]
@@ -164,6 +203,23 @@ class BackTest:
         self._winInfo(trade_info, temp)
         return temp
         
+    # 在优化多个参数时计算并保存回测结果
+    def _optResultMore(self, results, **kwargs):
+        testResults = pd.DataFrame()
+        i = 0
+        for key in kwargs:
+            for value in kwargs[key]:
+                temp = self._getOptAnalysis(results[i])
+                temp["参数名"] = key
+                temp["参数值"] = value
+                returns = self._timeReturns(results[i])
+                benchReturns = self._getBenchmarkReturns(results[i])
+                self._riskAnaly(returns, benchReturns, temp)
+                testResults = testResults.append(temp, ignore_index=True)
+            # testResults.set_index(["参数值"], inplace = True)
+        return testResults
+                
+        
     # 在优化参数时计算并保存回测结果
     def _optResult(self, results, **kwargs):
         testResults = pd.DataFrame()
@@ -174,22 +230,15 @@ class BackTest:
         i = 0
         for result in results:
             temp = self._getOptAnalysis(result)
+            temp["参数名"] = k
             temp["参数值"] = params[i]
             i += 1
             returns = self._timeReturns(result)
             benchReturns = self._getBenchmarkReturns(result)
             self._riskAnaly(returns, benchReturns, temp)
             testResults = testResults.append(temp, ignore_index=True)
-        testResults.set_index(["参数值"], inplace = True)
+        # testResults.set_index(["参数值"], inplace = True)
         return testResults
-        
-    # 获取回测指标
-    def getResult(self):
-        return self.__backtestResult
-        
-    # 获取策略及基准策略收益率的序列
-    def getReturns(self):
-        return self.__returns, self.__benchReturns
         
     # 计算收益率序列
     def _timeReturns(self, result):
@@ -212,41 +261,12 @@ class BackTest:
         results["sortino"] = result["sortino"]
         results["calmar"] = result["calmar"]
         
-    # 执行回测
-    def run(self):
-        self.__backtestResult["期初账户总值"] = self.getValue()
-        self.__results = self.__cerebro.run()
-        self.__backtestResult["期末账户总值"] = self.getValue()
-        self._Result()
-        if self.__bDraw == True:
-            self._drawResult()
-        self.__returns = self._timeReturns(self.__results)
-        self.__benchReturns = self._getBenchmarkReturns(self.__results)
-        self._riskAnaly(self.__returns, self.__benchReturns, self.__backtestResult)
-        return self.getResult()
-        
-    # 执行参数优化的回测
-    def optRun(self, *args, **kwargs):
-        self._optStrategy(*args, **kwargs)
-        results = self.__cerebro.run()
-        testResults = self._optResult(results, **kwargs)
-        self.init()
-        return testResults
-        
     # 回测结果绘图
     def _drawResult(self):
         self.__cerebro.plot(numfigs = 2)
         figname = type(self).__name__+".png"
         plt.savefig(figname)
-        
-    # 输出回测结果
-    def output(self):
-        print("夏普比例:", self.__results[0].analyzers.sharpe.get_analysis()["sharperatio"])
-        print("年化收益率:", self.__results[0].analyzers.AR.get_analysis())
-        print("最大回撤:%.2f，最大回撤周期%d" % (self.__results[0].analyzers.DD.get_analysis().max.drawdown, self.__results[0].analyzers.DD.get_analysis().max.len))
-        print("总收益率:%.2f" % (self.__results[0].analyzers.RE.get_analysis()["rtot"]))
-        self.__results[0].analyzers.TA.pprint()
-            
+
     # 获取数据
     def _getData(self, code):
         filename = code+".csv"

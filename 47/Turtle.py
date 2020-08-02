@@ -110,12 +110,12 @@ if __name__ == "__main__":
     result = backtest.run()
     # backtest.output()
     print(result)
-    result = backtest.optRun(long_period = range(20, 60))
+    result = backtest.optRun(long_period = range(20, 40), short_period = range(5, 15))
     plt.figure()
-    plt.plot(result.年化收益率)
+    plt.plot(result.参数值, result.年化收益率)
     plt.savefig("海龟策略参数优化.png")
     ret = result.loc[:, "年化收益率"]
     maxindex = ret[ret == ret.max()].index
     bestResult = result.loc[maxindex,:]
-    print(bestResult.loc[:, ["夏普比率", "年化收益率"]])
+    print(bestResult.loc[:, ["夏普比率", "参数名", "参数值",  "年化收益率"]])
     
