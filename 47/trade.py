@@ -10,7 +10,7 @@ import pandas as pd
 # 交易策略
 class TradeStrategy(bt.Strategy):
     params = (
-            ("recordFilename", "etfdata.csv"),
+            ("recordFilename", "./data/etfdata.csv"),
             ("printlog", False)
     )
     

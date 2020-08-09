@@ -53,14 +53,16 @@ if __name__ == "__main__":
     end_date = datetime.datetime(end_date[0], end_date[1], end_date[2])
     dataFeed = bt.feeds.PandasData(dataname = df, name = name[0], fromdate = start_date, todate = end_date)
     cerebro = bt.Cerebro(maxcpus = 1)
-    cerebro.optstrategy(TestStrategy, a = range(1, 5), b = range(10, 15))
+    # cerebro.optstrategy(TestStrategy, a = range(1, 5), b = range(10, 15))
+    cerebro.addstrategy(TestStrategy, a = 2, b = 15)
     cerebro.adddata(dataFeed, name = "test")
     cerebro.addanalyzer(btay.Returns, _name = "RE")
     results = cerebro.run()
+    print(results[0].analyzers.RE.get_analysis()["rnorm"])
     
-    for result in results:
-        ret = result[0].analyzers.RE.get_analysis()["rnorm"]
-        print((result[0].p.a, result[0].p.b, ret))
+#    for result in results:
+#        ret = result[0].analyzers.RE.get_analysis()["rnorm"]
+#        print((result[0].p.a, result[0].p.b, ret))
         
     
     test(a = range(1, 5), b = (1, 5))

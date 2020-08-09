@@ -19,6 +19,7 @@ from backtrader import Analyzer, TimeFrame
 from backtrader.mathsupport import average, standarddev
 from backtrader.analyzers import AnnualReturn
 import operator
+from pathlib import Path
 
 
 # 回测类
@@ -270,12 +271,16 @@ class BackTest:
     # 获取数据
     def _getData(self, code):
         filename = code+".csv"
+        path = "./data/"
+        # 如果数据目录不存在，创建目录
+        if not os.path.exists(path):
+            os.makedirs(path)
         # 已有数据文件，直接读取数据
-        if os.path.exists("./" + filename):
-            df = pd.read_csv(filename)
+        if os.path.exists(path + filename):
+            df = pd.read_csv(path + filename)
         else: # 没有数据文件，用tushare下载
             df = ts.get_k_data(code, autype = "qfq", start = self.__start,  end = self.__end)
-            df.to_csv(filename)
+            df.to_csv(path + filename)
         df.index = pd.to_datetime(df.date)
         df['openinterest']=0
         df=df[['open','high','low','close','volume','openinterest']]
