@@ -86,7 +86,7 @@ class BackTest:
         print("年化收益率:", self.__results[0].analyzers.AR.get_analysis())
         print("最大回撤:%.2f，最大回撤周期%d" % (self.__results[0].analyzers.DD.get_analysis().max.drawdown, self.__results[0].analyzers.DD.get_analysis().max.len))
         print("总收益率:%.2f" % (self.__results[0].analyzers.RE.get_analysis()["rtot"]))
-        self.__results[0].analyzers.TA.pprint()
+        # self.__results[0].analyzers.TA.pprint()
             
     # 进行参数优化
     def _optStrategy(self, *args, **kwargs):
@@ -144,7 +144,6 @@ class BackTest:
     # 计算胜率信息
     def _winInfo(self, trade_info, result):
         total_trade_num = trade_info["total"]["total"]
-        # print(total_trade_num)
         if total_trade_num > 1:
             win_num = trade_info["won"]["total"]
             lost_num = trade_info["lost"]["total"]
