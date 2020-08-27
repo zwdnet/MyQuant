@@ -136,16 +136,22 @@ class FactorStrategy(bt.Strategy):
                 self.__displayOrder(False, order)
         self.order = None
         
+    
+# 根据股票代码找股票名称
+def fromCodeToName(factors, codes):
+    # 准备数据
+    name = factors[factors.index.isin(codes)].name.values
+    # 将汉字转换为拼音
+    p = Pinyin()
+    names = [p.get_pinyin(s) for s in name]
+    return names
+        
         
 # 实际做回测的函数
 def doBacktest(factors, strategy, a1, a2, a3, a4, a5, start, end, cash):
     score = scale(factors, a1, a2, a3, a4, a5)
     codes = score[-10:].index
-    # 准备数据
-    name = factors.loc[codes, "name"].values
-    # 将汉字转换为拼音
-    p = Pinyin()
-    name = [p.get_pinyin(s) for s in name]
+    name = fromCodeToName(factors, codes)
     code = [str(x) for x in codes]
     opttest = backtest.BackTest(strategy, start, end, code, name, cash)
     result = opttest.run()
@@ -304,6 +310,14 @@ def regressChoose(factors, strategy, model, times = 200, cash = 1000000, bDraw =
     print("模型预测年化收益率{}, 实际回测年化收益率: {}\n".format(best, result.年化收益率)) 
     return code
     
+    
+# 根据输入的股票池进行回测检验
+def checkResult(strategy, codes, names, start, end, cash = 1000000):
+    opttest = backtest.BackTest(strategy, start, end, codes, names, cash)
+    result = opttest.run()
+    print("回测结果")
+    print(result)
+    
 
 if __name__ == "__main__":
     factors = getFactors()
@@ -329,16 +343,20 @@ if __name__ == "__main__":
 #    plt.hist(res)
 #    plt.savefig("factor_res.png")
     # 随机算法
-    res = randOpt(factors, FactorStrategy, times = 250)
-    # print(res)
-    plt.figure()
-    plt.hist(res)
-    plt.savefig("factor_res.png")
+#    res = randOpt(factors, FactorStrategy, times = 250)
+#    # print(res)
+#    plt.figure()
+#    plt.hist(res)
+#    plt.savefig("factor_res.png")
     # 回归分析
-    data = pd.read_csv("factor_result.csv", index_col = 0)
-    model = regress(data)
+    #data = pd.read_csv("factor_result.csv", index_col = 0)
+#    model = regress(data)
     # 用回归分析的结果进行回测
     model = joblib.load("Regress.m")
     bestResult = regressChoose(factors, FactorStrategy, model, times = 10000)
     print("股票池为:", bestResult)
+    start = "2010-01-01"
+    end = "2020-07-05"
+    name = fromCodeToName(factors, bestResult)
+    checkResult(FactorStrategy, bestResult, name, start, end)
     
