@@ -193,13 +193,14 @@ def randOpt(factors, strategy, times = 200, cash = 1000000, bDraw = False):
     res = []
     maxRes = 0.0
     maxParams = [0, 0, 0, 0, 0]
+    N = 10000
     random.seed()
     for i in range(times):
-        a1 = random.randint(1, 200)
-        a2 = random.randint(1, 200)
-        a3 = random.randint(1, 200)
-        a4 = random.randint(1, 200)
-        a5 = random.randint(1, 200)
+        a1 = random.randint(1, N)
+        a2 = random.randint(1, N)
+        a3 = random.randint(1, N)
+        a4 = random.randint(1, N)
+        a5 = random.randint(1, N)
         result, code = doBacktest(factors, strategy, a1, a2, a3, a4, a5, start, end, cash)
         print("第{}次尝试:a1 = {}, a2 = {}, a3 = {}, a4 = {}, a5 = {}, 年化收益率: {}\n".format(i+1, a1, a2, a3, a4, a5, result.年化收益率))
         
@@ -344,11 +345,11 @@ if __name__ == "__main__":
 #    plt.hist(res)
 #    plt.savefig("factor_res.png")
     # 随机算法
-    # res = randOpt(factors, FactorStrategy, times = 8000)
+    res = randOpt(factors, FactorStrategy, times = 10000)
     # print(res)
-    # plt.figure()
-    # plt.hist(res)
-    # plt.savefig("factor_res.png")
+    plt.figure()
+    plt.hist(res)
+    plt.savefig("factor_res.png")
     # 回归分析
     data = pd.read_csv("factor_result.csv", index_col = 0)
     model = regress(data)

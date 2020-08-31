@@ -1,0 +1,8 @@
+  File "facts.py", line 348
+    res = randOpt(factors, FactorStrategy, times = 20000)
+    ^
+IndentationError: unexpected indent
+  File "facts.py", line 348
+    res = randOpt(factors, FactorStrategy, times = 20000)
+    ^
+IndentationError: unexpected indent
