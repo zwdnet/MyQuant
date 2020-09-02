@@ -193,14 +193,13 @@ def randOpt(factors, strategy, times = 200, cash = 1000000, bDraw = False):
     res = []
     maxRes = 0.0
     maxParams = [0, 0, 0, 0, 0]
-    N = 10000
     random.seed()
     for i in range(times):
-        a1 = random.randint(1, N)
-        a2 = random.randint(1, N)
-        a3 = random.randint(1, N)
-        a4 = random.randint(1, N)
-        a5 = random.randint(1, N)
+        a1 = random.randint(1, 200)
+        a2 = random.randint(1, 200)
+        a3 = random.randint(1, 200)
+        a4 = random.randint(1, 200)
+        a5 = random.randint(1, 200)
         result, code = doBacktest(factors, strategy, a1, a2, a3, a4, a5, start, end, cash)
         print("第{}次尝试:a1 = {}, a2 = {}, a3 = {}, a4 = {}, a5 = {}, 年化收益率: {}\n".format(i+1, a1, a2, a3, a4, a5, result.年化收益率))
         
@@ -247,23 +246,25 @@ def regress(data):
     print(data)
     draw(data, "factor_analysis.png")
     # 剔除年化收益率在0.1-0.2之间的数据
-    data = data[(data.result < 0.1) | (data.result > 0.2)]
+    data = data[data.result > 0.2]
     draw(data, "factor_after_clean.png")
     # 进行多元线性回归
     # 划分数据
     print(data.describe())
     X = data.loc[:, ["a1", "a2", "a3", "a4", "a5"]]
     Y = data.loc[:, ["result"]]
-    print("测试")
-    print(X, Y)
+    # print("测试")
+    # print(X, Y)
     X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.25, random_state = 1)
     print(X_test, Y_test)
     # 建模
     model = LinearRegression()
     model.fit(X_train, Y_train)
     predictions = model.predict(X_test)
+    cha = []
     for i, prediction in enumerate(predictions):
         print("预测值:%s, 目标值:%s" % (prediction, Y_test.iloc[i, :]))
+        cha.append(prediction - Y_test.iloc[i, :])
     print("R平方值:%.2f" % model.score(X_test, Y_test))
     MSE = metrics.mean_squared_error(Y_test, predictions)
     RMSE = np.sqrt(MSE)
@@ -281,6 +282,11 @@ def regress(data):
     plt.xlabel('real value')
     plt.ylabel('predict value')
     plt.savefig("因子选股线性回归结果(散点图).png")
+    # 画残差图
+    plt.figure()
+    plt.scatter(range(len(Y_test)), cha)
+    plt.ylabel("cha")
+    plt.savefig("因子选股线性回归残差图.png")
     # 保存模型
     joblib.dump(model, "Regress.m")
     return model
@@ -345,11 +351,11 @@ if __name__ == "__main__":
 #    plt.hist(res)
 #    plt.savefig("factor_res.png")
     # 随机算法
-    res = randOpt(factors, FactorStrategy, times = 10000)
+    # res = randOpt(factors, FactorStrategy, times = 8000)
     # print(res)
-    plt.figure()
-    plt.hist(res)
-    plt.savefig("factor_res.png")
+    # plt.figure()
+    # plt.hist(res)
+    # plt.savefig("factor_res.png")
     # 回归分析
     data = pd.read_csv("factor_result.csv", index_col = 0)
     model = regress(data)
