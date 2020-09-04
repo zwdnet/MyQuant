@@ -143,7 +143,8 @@ class BackTest:
             
     # 计算胜率信息
     def _winInfo(self, trade_info, result):
-        if len(trade_info) != 8:
+        # print("测试:", len(trade_info))
+        if len(trade_info) < 8:
             result["交易次数"] = 0
             result["胜率"] = 0
             result["败率"] = 0
