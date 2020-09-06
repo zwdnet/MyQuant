@@ -24,7 +24,7 @@ from sklearn.externals import joblib
 import numpy as np
 # from sklearn.preprocessing import OneHotEncoder
 import seaborn as sns
-from DL import DL
+# from DL import DL
 
 
 # 获取股票数据，进行初步筛选，返回供因子分析的股票数据。
@@ -41,7 +41,7 @@ def getFactors():
     # 排除ST股票
     data = data[~ data.name.str.contains("ST")]
     # 排除代码小于100000的股票
-    data = data[data.index >= 100000]
+    # data = data[data.index >= 100000]
     # 排除退市的股票
     data = data[data.pe != 0]
     return data
@@ -66,15 +66,17 @@ def getReturn(data):
     end = "2020-07-31"
     codes = data.index
     names = fromCodeToName(data, codes)
-    codes = [str(x) for x in codes]
+    # codes = [str(x) for x in codes]
+    codes = ["%06d" % x for x in codes]
+    print(codes)
 #    print(codes)
 #    print(names)
     # 在数据中增加一列计算年化收益率
     data["ar"] = 0.0
     t = 0
     cash = 100000
-    for code in data.index:
-        test = backtest.BackTest(FactorStrategy, start, end, [str(code)], [names[t]], cash, bDraw = False)
+    for code in codes:
+        test = backtest.BackTest(FactorStrategy, start, end, [code], [names[t]], cash, bDraw = False)
         result = test.run()
         print("第{}次回测，股票代码{}，回测年化收益率{}。".format(t+1, code, result.年化收益率))
         data.loc[code, ["ar"]] = result.年化收益率
@@ -405,5 +407,5 @@ if __name__ == "__main__":
     knn = test(data.loc[data.res == 1], "KNN.m", "KNN模型")
     print(knn)
     # 深度学习进行线性回归
-    DL(data)
+    # DL(data)
     
