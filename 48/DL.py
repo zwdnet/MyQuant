@@ -2,7 +2,8 @@
 # 用深度学习进行非线性回归，多因子选股
 
 
-# import torch.nn as nn
+import torch.nn as nn
+import torch
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 import numpy as np
@@ -33,11 +34,11 @@ def DL(data):
     y_train = np.array(y_train)
     x_test = np.array(x_test)
     y_test = np.array(y_test)
-    inputs = torch.from_numpy(inputs)
-    targets = torch.from_numpy(targets)
+    inputs = torch.from_numpy(x_train)
+    targets = torch.from_numpy(y_train)
     
     # 定义数据集
-    train_ds = TrnsorDataset(inputs, targets)
+    train_ds = TensorDataset(inputs, targets)
     print(train_ds[0:18])
     # 定义data loader
     batch_size = 5
@@ -51,10 +52,10 @@ def DL(data):
     print(model.weight)
     print(model.bias)
     # 输出参数
-    print(list(model.parameters))
+    # print(list(model.parameters))
     # 进行预测
-    preds = model(inputs)
-    print(preds)
+    # preds = model(inputs.float())
+    # print(preds)
     # 损失函数
     loss_fn = F.mse_loss
     loss = loss_fn(model(inputs), targets)

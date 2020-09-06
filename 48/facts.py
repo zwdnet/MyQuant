@@ -216,7 +216,8 @@ def doPerceptron(data):
     x = data.iloc[:, 3:21]
     y = data.loc[:, ["res"]]
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, random_state = 631)
-    clf = Perceptron(fit_intercept = False, n_iter = 30, shuffle = False)
+    clf = Perceptron(fit_intercept = False, shuffle = False)
+    #clf = Perceptron(fit_intercept = False, n_iter = 30, shuffle = False)
     clf.fit(x_train, y_train.astype("int"))
     print("感知机得分:", clf.score(x_test, y_test))
     pred = clf.predict(x_test)
