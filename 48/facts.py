@@ -15,12 +15,16 @@ import random
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import Perceptron, LogisticRegression
+from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
 from sklearn.externals import joblib
 import numpy as np
 # from sklearn.preprocessing import OneHotEncoder
 import seaborn as sns
+from DL import DL
 
 
 # 获取股票数据，进行初步筛选，返回供因子分析的股票数据。
@@ -108,6 +112,14 @@ def doTest(codes, method):
     return result
     
     
+# 对数据打标签
+def addItem(data):
+    data["res"] = 0
+    data.loc[data.ar > 0.0, "res"] = 1
+    data.loc[data.ar <= 0.0, "res"] = 0
+    return data
+    
+    
 # 多元线性回归
 def multiLineRegress(data):
     x = data.iloc[:, 3:21]
@@ -141,22 +153,6 @@ def multiLineRegress(data):
     return model
     
     
-# 测试多元线性回归的效果
-def testMultiRegress(data):
-    model = joblib.load("LineRegress.m")
-    pred_return = model.predict(data.iloc[:, 3:21])
-    # print(pred_return)
-    data["pred_ar"] = pred_return
-    # print(data)
-    # 排序
-    data = data.sort_values(by = "pred_ar", ascending = False)
-    # print(data)
-    # 取前十个股票作为投资标的
-    codes = data.index[0:10].values
-    # print(codes)
-    return doTest(codes, method = "多元线性回归")
-    
-    
 # 用二次多项式回归进行选股
 def quadRegress(data):
     quadratic_featurizer = PolynomialFeatures(degree=2)
@@ -179,10 +175,10 @@ def quadRegress(data):
     return regress_quad
     
     
-# 测试二次多项式回归回测效果
-def testQuadRegress(data):
-    model = joblib.load("QuadRegress.m")
+# 测试二项式回归结果
+def testQuadRegress(data, modelfile, modelname):
     quadratic_featurizer = PolynomialFeatures(degree=2)
+    model = joblib.load(modelfile)
     pred_return = model.predict(quadratic_featurizer.fit_transform(data.iloc[:, 3:21]))
     # print(pred_return)
     data["pred_ar"] = pred_return
@@ -193,9 +189,9 @@ def testQuadRegress(data):
     # 取前十个股票作为投资标的
     codes = data.index[0:10].values
     # print(codes)
-    return doTest(codes, method = "二项式回归")
+    return doTest(codes, method = modelname)
     
-    
+
 # 随机森林进行选股
 def RFRegress(data):
     x = data.iloc[:, 3:21]
@@ -215,9 +211,89 @@ def RFRegress(data):
     return rfr
     
     
-# 测试随机森林回归的选股结果
-def testRFRegress(data):
-    model = joblib.load("RandomForestRegress.m")
+# 感知机模型分析
+def doPerceptron(data):
+    x = data.iloc[:, 3:21]
+    y = data.loc[:, ["res"]]
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, random_state = 631)
+    clf = Perceptron(fit_intercept = False, n_iter = 30, shuffle = False)
+    clf.fit(x_train, y_train.astype("int"))
+    print("感知机得分:", clf.score(x_test, y_test))
+    pred = clf.predict(x_test)
+    # print(pred)
+    plt.figure()
+    plt.scatter(range(len(pred)), y_test, c = "b", label="predict")
+    plt.scatter(range(len(pred)), pred, c = "r", label="test")
+    plt.savefig("感知机模型分类.png")
+    plt.close()
+    # 保存模型
+    joblib.dump(clf, "Perceptron.m")
+    return clf
+    
+    
+# 支持向量机选股
+def SVCClassic(data):
+    x = data.iloc[:, 3:21]
+    y = data.loc[:, ["res"]]
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, random_state = 631)
+    clf = SVC()
+    clf.fit(x_train, y_train)
+    print("支持向量机评分:", clf.score(x_test, y_test))
+    pred = clf.predict(x_test)
+    # print(pred)
+    plt.figure()
+    plt.scatter(range(len(pred)), y_test, c = "b", label="predict")
+    plt.scatter(range(len(pred)), pred, c = "r", label="test")
+    plt.savefig("支持向量机分类.png")
+    plt.close()
+    # 保存模型
+    joblib.dump(clf, "SVC.m")
+    return clf
+    
+    
+# 逻辑回归进行多因子选股
+def logist(data):
+    x = data.iloc[:, 3:21]
+    y = data.loc[:, ["res"]]
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, random_state = 631)
+    clf = LogisticRegression()
+    clf.fit(x_train, y_train)
+    print("逻辑回归评分:", clf.score(x_test, y_test))
+    pred = clf.predict(x_test)
+    # print(pred)
+    plt.figure()
+    plt.scatter(range(len(pred)), y_test, c = "b", label="predict")
+    plt.scatter(range(len(pred)), pred, c = "r", label="test")
+    plt.savefig("逻辑回归分类.png")
+    plt.close()
+    # 保存模型
+    joblib.dump(clf, "Logistic.m")
+    return clf
+    
+    
+# KNN聚类
+def KNN(data):
+    x = data.iloc[:, 3:21]
+    y = data.loc[:, ["res"]]
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, random_state = 631)
+    knn = KNeighborsClassifier() 
+    knn.fit(x_train, y_train)
+    print("KNN评分:", knn.score(x_test, y_test))
+    pred = knn.predict(x_test)
+    # print(pred)
+    plt.figure()
+    plt.scatter(range(len(pred)), y_test, c = "b", label="predict")
+    plt.scatter(range(len(pred)), pred, c = "r", label="test")
+    plt.savefig("KNN分类.png")
+    plt.close()
+    # 保存模型
+    joblib.dump(knn, "KNN.m")
+    return knn
+    
+    
+# 测试选股结果
+def test(data, modelfile, modelname):
+    model = joblib.load(modelfile)
     pred_return = model.predict(data.iloc[:, 3:21])
     # print(pred_return)
     data["pred_ar"] = pred_return
@@ -228,7 +304,7 @@ def testRFRegress(data):
     # 取前十个股票作为投资标的
     codes = data.index[0:10].values
     # print(codes)
-    return doTest(codes, method = "随机森林回归")
+    return doTest(codes, method = modelname)
     
 
 # 交易策略类，一开始买入然后持有。
@@ -296,13 +372,37 @@ if __name__ == "__main__":
     # 进行多元线性回归分析
     multiLineRegress(data)
     # 回测多元线性回归的结果
-    mlr = testMultiRegress(data)
+    mlr = test(data, "LineRegress.m", "多元线性回归")
     # 进行二次多项式回归分析
     quadRegress(data)
     # 回测二次多项式回归结果
-    qr = testQuadRegress(data)
+    qr = testQuadRegress(data, "QuadRegress.m", "二项式回归")
     # 随机森林回归分析
     RFRegress(data)
     # 回测随机森林回归结果。
-    rf = testRFRegress(data)
-    print(rf)
+    rf = test(data, "RandomForestRegress.m", "随机森林回归")
+    # 对数据进行处理，增加标签
+    data = addItem(data)
+    # 感知机模型
+    doPerceptron(data)
+    # 用感知机模型进行回测
+    pp = test(data.loc[data.res == 1], "Perceptron.m", "感知机模型")
+    print(pp)
+    # 支持向量机选股
+    SVCClassic(data)
+    # 用支持向量机回测
+    svc = test(data.loc[data.res == 1], "SVC.m", "支持向量机模型")
+    print(svc)
+    # 逻辑回归选股
+    logist(data)
+    # 用逻辑回归回测
+    log = test(data.loc[data.res == 1], "Logistic.m", "逻辑回归模型")
+    print(log)
+    # KNN选股
+    KNN(data)
+    # 用KNN回测
+    knn = test(data.loc[data.res == 1], "KNN.m", "KNN模型")
+    print(knn)
+    # 深度学习进行线性回归
+    DL(data)
+    
