@@ -75,6 +75,8 @@ def getReturn(data):
     data["ar"] = 0.0
     t = 0
     cash = 100000
+    # 到这里出错，移除。
+    codes.remove("000029")
     for code in codes:
         test = backtest.BackTest(FactorStrategy, start, end, [code], [names[t]], cash, bDraw = False)
         result = test.run()
