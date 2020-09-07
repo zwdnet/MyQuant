@@ -275,6 +275,7 @@ class BackTest:
 
     # 获取数据
     def _getData(self, code):
+        code = str(code)
         filename = code+".csv"
         path = "./data/"
         # 如果数据目录不存在，创建目录
@@ -286,6 +287,7 @@ class BackTest:
         else: # 没有数据文件，用tushare下载
             df = ts.get_k_data(code, autype = "qfq", start = self.__start,  end = self.__end)
             df.to_csv(path + filename)
+        # print("backtest测试", df.info())
         df.index = pd.to_datetime(df.date)
         df['openinterest']=0
         df=df[['open','high','low','close','volume','openinterest']]

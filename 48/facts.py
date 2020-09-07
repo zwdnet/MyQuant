@@ -33,7 +33,7 @@ def getFactors():
 #    print(data.head())
 #    print(len(data))
 #    data.to_csv("stocks.csv")
-    data = pd.read_csv("stocks.csv", index_col = "code")
+    data = pd.read_csv("stocks.csv")
     # 排除亏损的股票
     data = data[data.npr > 0.0]
     # 排除上市不满2年的
@@ -44,13 +44,15 @@ def getFactors():
     # data = data[data.index >= 100000]
     # 排除退市的股票
     data = data[data.pe != 0]
+    # 排除000029,深深房Ａ，原因未知
+    data = data[data.name != "深深房Ａ"]
     return data
     
     
 # 根据股票代码找股票名称
-def fromCodeToName(factors, codes):
+def fromCNToEN(name):
     # 准备数据
-    name = factors[factors.index.isin(codes)].name.values
+    #name = factors[factors.index.isin(codes)].name.values
     # 将汉字转换为拼音
     p = Pinyin()
     names = [p.get_pinyin(s) for s in name]
@@ -60,29 +62,44 @@ def fromCodeToName(factors, codes):
 # 对所有股票回测其年化收益率
 def getReturn(data):
     if os.path.exists("data.csv"):
-        data = pd.read_csv("data.csv", index_col = "code")
+        data = pd.read_csv("data.csv")
+        codes = data.code
+        codes = ["%06d" % x for x in codes]
+        data.code = codes
         return data
     start = "2017-01-01"
     end = "2020-07-31"
-    codes = data.index
-    names = fromCodeToName(data, codes)
-    # codes = [str(x) for x in codes]
+    codes = data.code
     codes = ["%06d" % x for x in codes]
-    print(codes)
+    data.code = codes
+    # names = fromCodeToName(data, codes)
+    # print(names)
+    # print(len(codes), len(names))
+    # codes = [str(x) for x in codes]
+
+    # print(codes)
 #    print(codes)
 #    print(names)
     # 在数据中增加一列计算年化收益率
     data["ar"] = 0.0
     t = 0
     cash = 100000
-    # 到这里出错，移除。
-    codes.remove("000029")
+    # codes.remove("000029")
+    names = data.name.values.tolist()
+    # names.remove("深深房Ａ")
+    ar = []
     for code in codes:
         test = backtest.BackTest(FactorStrategy, start, end, [code], [names[t]], cash, bDraw = False)
         result = test.run()
         print("第{}次回测，股票代码{}，回测年化收益率{}。".format(t+1, code, result.年化收益率))
-        data.loc[code, ["ar"]] = result.年化收益率
+        ar.append(result.年化收益率)
+        # data.loc[t, "ar"] = result.年化收益率
+        # print(data.info())
         t += 1
+        
+    print(data.shape, len(ar))
+    data["ar"] = ar
+    print(data.info())
     data.to_csv("data.csv")
     return data
 
@@ -102,9 +119,11 @@ def analysis(data):
     
     
 # 测试所选股票的回测结果
-def doTest(codes, method):
-    names = fromCodeToName(data, codes)
-    codes = [str(x) for x in codes]
+def doTest(data, codes, method):
+    # names = fromCodeToName(data, codes)
+    names = data[data.code.isin(codes)].name.values
+    names = fromCNToEN(names)
+    # codes = [str(x) for x in codes]
     start = "2010-01-01"
     end = "2020-07-01"
     cash = 1000000
@@ -126,10 +145,11 @@ def addItem(data):
     
 # 多元线性回归
 def multiLineRegress(data):
-    x = data.iloc[:, 3:21]
-    y = data.iloc[:, 22]
+    x = data.iloc[:, 5:23]
+    y = data.iloc[:, 24]
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, random_state = 631)
     line_reg = LinearRegression(normalize = True)
+    print(x_train, y_train)
     model = line_reg.fit(x_train, y_train)
     print("模型参数:", model)
     print("模型截距:", model.intercept_)
@@ -160,8 +180,8 @@ def multiLineRegress(data):
 # 用二次多项式回归进行选股
 def quadRegress(data):
     quadratic_featurizer = PolynomialFeatures(degree=2)
-    x = data.iloc[:, 3:21]
-    y = data.iloc[:, 22]
+    x = data.iloc[:, 5:23]
+    y = data.iloc[:, 24]
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, random_state = 631)
     x_train_quad = quadratic_featurizer.fit_transform(x_train)
     x_test_quad = quadratic_featurizer.transform(x_test)
@@ -183,7 +203,7 @@ def quadRegress(data):
 def testQuadRegress(data, modelfile, modelname):
     quadratic_featurizer = PolynomialFeatures(degree=2)
     model = joblib.load(modelfile)
-    pred_return = model.predict(quadratic_featurizer.fit_transform(data.iloc[:, 3:21]))
+    pred_return = model.predict(quadratic_featurizer.fit_transform(data.iloc[:, 5:23]))
     # print(pred_return)
     data["pred_ar"] = pred_return
     # print(data)
@@ -191,15 +211,15 @@ def testQuadRegress(data, modelfile, modelname):
     data = data.sort_values(by = "pred_ar", ascending = False)
     # print(data)
     # 取前十个股票作为投资标的
-    codes = data.index[0:10].values
+    codes = data.code[0:10].values
     # print(codes)
-    return doTest(codes, method = modelname)
+    return doTest(data, codes, method = modelname)
     
 
 # 随机森林进行选股
 def RFRegress(data):
-    x = data.iloc[:, 3:21]
-    y = data.iloc[:, 22]
+    x = data.iloc[:, 5:23]
+    y = data.iloc[:, 24]
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, random_state = 631)
     rfr = RandomForestRegressor()
     rfr.fit(x_train, y_train)
@@ -217,7 +237,7 @@ def RFRegress(data):
     
 # 感知机模型分析
 def doPerceptron(data):
-    x = data.iloc[:, 3:21]
+    x = data.iloc[:, 5:23]
     y = data.loc[:, ["res"]]
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, random_state = 631)
     clf = Perceptron(fit_intercept = False, shuffle = False)
@@ -238,7 +258,7 @@ def doPerceptron(data):
     
 # 支持向量机选股
 def SVCClassic(data):
-    x = data.iloc[:, 3:21]
+    x = data.iloc[:, 5:23]
     y = data.loc[:, ["res"]]
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, random_state = 631)
     clf = SVC()
@@ -258,7 +278,7 @@ def SVCClassic(data):
     
 # 逻辑回归进行多因子选股
 def logist(data):
-    x = data.iloc[:, 3:21]
+    x = data.iloc[:, 5:23]
     y = data.loc[:, ["res"]]
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, random_state = 631)
     clf = LogisticRegression()
@@ -278,7 +298,7 @@ def logist(data):
     
 # KNN聚类
 def KNN(data):
-    x = data.iloc[:, 3:21]
+    x = data.iloc[:, 5:23]
     y = data.loc[:, ["res"]]
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, random_state = 631)
     knn = KNeighborsClassifier() 
@@ -299,7 +319,7 @@ def KNN(data):
 # 测试选股结果
 def test(data, modelfile, modelname):
     model = joblib.load(modelfile)
-    pred_return = model.predict(data.iloc[:, 3:21])
+    pred_return = model.predict(data.iloc[:, 5:23])
     # print(pred_return)
     data["pred_ar"] = pred_return
     # print(data)
@@ -307,9 +327,8 @@ def test(data, modelfile, modelname):
     data = data.sort_values(by = "pred_ar", ascending = False)
     # print(data)
     # 取前十个股票作为投资标的
-    codes = data.index[0:10].values
-    # print(codes)
-    return doTest(codes, method = modelname)
+    codes = data.code[0:10].values
+    return doTest(data, codes, method = modelname)
     
 
 # 交易策略类，一开始买入然后持有。
@@ -370,8 +389,10 @@ class FactorStrategy(bt.Strategy):
 
 if __name__ == "__main__":
     factors = getFactors()
+    # factors = factors.iloc[0:100, :]
     # 进行回测,获取各只股票的年化收益率
     data = getReturn(factors)
+    print(data.code)
     # 数据分析
     analysis(data)
     # 进行多元线性回归分析
@@ -392,22 +413,24 @@ if __name__ == "__main__":
     doPerceptron(data)
     # 用感知机模型进行回测
     pp = test(data.loc[data.res == 1], "Perceptron.m", "感知机模型")
-    print(pp)
+    # print(pp)
     # 支持向量机选股
     SVCClassic(data)
     # 用支持向量机回测
     svc = test(data.loc[data.res == 1], "SVC.m", "支持向量机模型")
-    print(svc)
+    # print(svc)
     # 逻辑回归选股
     logist(data)
     # 用逻辑回归回测
     log = test(data.loc[data.res == 1], "Logistic.m", "逻辑回归模型")
-    print(log)
+    # print(log)
     # KNN选股
     KNN(data)
     # 用KNN回测
     knn = test(data.loc[data.res == 1], "KNN.m", "KNN模型")
-    print(knn)
+    # print(knn)
     # 深度学习进行线性回归
     # DL(data)
+    # 输出最佳模型的股票代码
+    print("最佳模型股票代码:", qr.股票代码)
     
