@@ -33,6 +33,11 @@ if __name__ == "__main__":
     regressor.fit(x_train, y_train)
     y_pred = regressor.predict(x_test)
     print(y_test, y_pred)
-    # 输出回归结果
+    # 准备反向淘汰
     x_train = np.append(arr = np.ones(40, 1), values = x_train, axis = 1)
+    # 进行反向淘汰
+    x_opt = x_train[:, [0, 1, 2, 3, 4, 5]]
+    regress_OLS = sm.OLS(endog = y_train, exdog = x_opt).fit()
+    print(regress_OLS.summary())
+    
     
