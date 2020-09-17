@@ -9,7 +9,7 @@ import pandas as pd
 from sklearn.preprocessing import Imputer,LabelEncoder, OneHotEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
-import statsmodels.formula.api as sm
+import statsmodels.api as sm
 
 
 if __name__ == "__main__":
@@ -34,10 +34,12 @@ if __name__ == "__main__":
     y_pred = regressor.predict(x_test)
     print(y_test, y_pred)
     # 准备反向淘汰
-    x_train = np.append(arr = np.ones(40, 1), values = x_train, axis = 1)
+    x_train = np.append(arr = np.ones((40, 1)).astype(int), values = x_train, axis = 1)
     # 进行反向淘汰
     x_opt = x_train[:, [0, 1, 2, 3, 4, 5]]
-    regress_OLS = sm.OLS(endog = y_train, exdog = x_opt).fit()
-    print(regress_OLS.summary())
+    print(x_opt.shape, y_train.shape)
+    regress_OLS = sm.OLS(endog = y_train, exdog = x_opt)
+    res = regress_OLS.fit()
+    print(res.summary())
     
     
